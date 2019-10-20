@@ -18,6 +18,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@truffle/hdwallet-provider": "^1.0.22",
     "chainlink": "0.7.5",
     "link_token": "^1.0.6",
     "openzeppelin-solidity": "^1.12.0"
