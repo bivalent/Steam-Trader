@@ -9,7 +9,7 @@ import "chainlink/v0.5/contracts/vendor/Ownable.sol";
  * @dev This contract is designed to work on multiple networks, including
  * local test networks
  */
-contract MyContract is ChainlinkClient, Ownable {
+contract SteamTrader is ChainlinkClient, Ownable {
   uint256 public data;
 
   /**
