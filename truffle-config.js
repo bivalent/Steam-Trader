@@ -16,24 +16,18 @@ module.exports = {
       provider: () => {
         return new HDWalletProvider(secrets.mnemonic, 'https://ropsten.infura.io/v3/' + secrets.infuraApiKey)
       },
-      network_id: '3',
-      // Necessary due to https://github.com/trufflesuite/truffle/issues/1971
-      // Should be fixed in Truffle 5.0.17
-      skipDryRun: true,
+      network_id: '3'
     },
     mainnet: {
       provider: () => {
         return new HDWalletProvider(secrets.mnemonic, 'https://mainnet.infura.io/v3/' + secrets.infuraApiKey)
       },
-      network_id: '1',
-      // Necessary due to https://github.com/trufflesuite/truffle/issues/1971
-      // Should be fixed in Truffle 5.0.17
-      skipDryRun: true,
+      network_id: '1'
     }
   },
   compilers: {
     solc: {
-      version: '0.5.8',
-    },
-  },
+      version: '0.5.8'
+    }
+  }
 }
