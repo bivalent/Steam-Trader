@@ -11,7 +11,7 @@
     "solhint": "solhint ./contracts/**/*.sol",
     "lint": "yarn eslint && yarn solhint",
     "format": "prettier --write \"**/*\"",
-    "migrate:dev": "npx truffle migrate --reset --network cldev",
+    "migrate:dev": "npx truffle migrate --reset --network dev",
     "migrate:live": "npx truffle migrate --network live",
     "setup": "echo \"No setup required for @chainlink/box\"",
     "test": "npx truffle test --migrations_directory migrations_null"
