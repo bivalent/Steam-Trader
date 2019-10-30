@@ -1,4 +1,4 @@
-let MyContract = artifacts.require('MyContract')
+let MyContract = artifacts.require('SteamTrader')
 
 module.exports = (deployer, network) => {
   // Local (development) networks need their own deployment of the LINK
@@ -8,6 +8,6 @@ module.exports = (deployer, network) => {
   } else {
     // For live networks, use the 0 address to allow the ChainlinkRegistry
     // contract automatically retrieve the correct address for you
-    deployer.deploy(MyContract, '0x0000000000000000000000000000000000000000')
+    deployer.deploy(SteamTrader, '0x0000000000000000000000000000000000000000')
   }
 }
