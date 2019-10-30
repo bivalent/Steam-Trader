@@ -4,9 +4,9 @@ const l = require('./helpers/linkToken')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { expectRevert, time } = require('openzeppelin-test-helpers')
 
-contract('MyContract', accounts => {
+contract('SteamTrader', accounts => {
   const Oracle = artifacts.require('Oracle.sol')
-  const MyContract = artifacts.require('MyContract.sol')
+  const SteamTrader = artifacts.require('SteamTrader.sol')
 
   const defaultAccount = accounts[0]
   const oracleNode = accounts[1]
@@ -19,10 +19,37 @@ contract('MyContract', accounts => {
   // For the latest JobIDs, visit our docs here:
   // https://docs.chain.link/docs/testnet-oracles
   const jobId = web3.utils.toHex('4c7b7ffb66b344fbaa64995af81e355a')
-  const url =
-    'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR,JPY'
-  const path = 'USD'
-  const times = 100
+
+  const sellerSteamId = '76561197993433424'
+  const buyerSteamId = '76561197993433424'
+  const appId = 470
+  const inventoryContext = 2
+  const assetid = 6908576449
+  const classid = 948149724
+  const instanceid = 996698943
+
+  var testItem = {
+    assetid: assetid,
+    classid: classid,
+    instanceid: instanceid,
+  }
+  var testBuyer = {
+    addr: stranger,
+    steamId: buyerSteamId,
+  }
+  var testSeller = {
+    addr: defaultAccount,
+    steamId: sellerSteamId,
+  }
+  var testTrade = {
+    tradeId: '098098-123123-1asdasf-123asf',
+    buyer: testBuyer,
+    seller: testSeller,
+    appId: appId,
+    inventoryContext: inventoryContext,
+    item: testItem,
+    askingPrice: web3.utils.toWei('1'),
+  }
 
   // Represents 1 LINK for testnet requests
   const payment = web3.utils.toWei('1')
@@ -32,17 +59,23 @@ contract('MyContract', accounts => {
   beforeEach(async () => {
     link = await l.linkContract(defaultAccount)
     oc = await Oracle.new(link.address, { from: defaultAccount })
-    cc = await MyContract.new(link.address, { from: consumer })
+    cc = await SteamTrader.new(link.address, { from: consumer })
     await oc.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
   })
-
+  /*
+  address _oracle,
+  bytes32 _jobId,
+  uint256 _payment,
+  Trade memory _trade,
+  bool _buyer
+  */
   describe('#createRequest', () => {
     context('without LINK', () => {
       it('reverts', async () => {
         await expectRevert.unspecified(
-          cc.createRequestTo(oc.address, jobId, payment, url, path, times, {
+          cc.checkSteamInventory(oc.address, jobId, payment, testTrade, false, {
             from: consumer,
           }),
         )
@@ -62,9 +95,8 @@ contract('MyContract', accounts => {
             oc.address,
             jobId,
             payment,
-            url,
-            path,
-            times,
+            testTrade,
+            false,
             { from: consumer },
           )
           request = h.decodeRunRequest(tx.receipt.rawLogs[3])
@@ -91,9 +123,8 @@ contract('MyContract', accounts => {
         oc.address,
         jobId,
         payment,
-        url,
-        path,
-        times,
+        testTrade,
+        false,
         { from: consumer },
       )
       request = h.decodeRunRequest(tx.receipt.rawLogs[3])
@@ -142,9 +173,8 @@ contract('MyContract', accounts => {
         oc.address,
         jobId,
         payment,
-        url,
-        path,
-        times,
+        testTrade,
+        false,
         { from: consumer },
       )
       request = h.decodeRunRequest(tx.receipt.rawLogs[3])
