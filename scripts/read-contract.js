@@ -1,4 +1,4 @@
-const MyContract = artifacts.require('MyContract')
+const SteamTrader = artifacts.require('SteamTrader')
 
 /*
   This script makes it easy to read the data variable
@@ -6,7 +6,7 @@ const MyContract = artifacts.require('MyContract')
 */
 
 module.exports = async callback => {
-  const mc = await MyContract.deployed()
-  const data = await mc.data.call()
+  const st = await SteamTrader.deployed()
+  const data = await st.data.call()
   callback(data)
 }
