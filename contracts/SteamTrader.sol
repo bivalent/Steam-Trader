@@ -62,6 +62,15 @@ contract SteamTrader is ChainlinkClient, Ownable {
     uint256 askingPrice;
   }
 
+  event TradeCreated(bytes32 indexed tradeId);
+  event FundingSecured(bytes32 indexed tradeId);
+  event SaleLocked(bytes32 indexed tradeId);
+  event SaleCompleted(bytes32 indexed tradeId);
+  event SellerHasItem(bytes32 tradeId);
+  event BuyerHasItem(bytes32 tradeId);
+  event RefundRequested(bytes32 indexed tradeId);
+  event RefundGranted(bytes32 indexed tradeId);
+
   function createTrade(
     bytes32 _uuid,
     string calldata _steamId,
@@ -73,7 +82,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     // app
     uint16 _appId,
     uint8 _inventoryContext
-  ) external returns (bytes32) {
+  ) external {
     // check if trade already exists. if so, halt.
     require (!tradeStatus[_uuid].init, "Trade already exists with this ID.");
 
@@ -90,8 +99,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     trade[_uuid].item.assetid = _assetid;
     trade[_uuid].item.classid = _classid;
     trade[_uuid].item.instanceid = _instanceid;
-
-    return _uuid;
+    emit TradeCreated(_uuid);
   }
 
   // seller runs so the contract displays he/she has the item
@@ -109,6 +117,9 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     bytes32 _tradeId = requestTracker[_requestId];
     tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
+    if (_itemFound) {
+      emit SellerHasItem(_tradeId);
+    }
   }
 
   // function for buyer to deposit funds
@@ -124,6 +135,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     trade[_tradeId].buyer.addr = msg.sender;
     trade[_tradeId].buyer.steamId = _steamId;
     tradeStatus[_tradeId].depositBalance = msg.value;
+    emit FundingSecured(_tradeId);
     //TODO: emit event that funds have arrived. UI can read this and SNS notify the seller
   }
 
@@ -134,6 +146,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
     tradeStatus[_tradeId].lockBlockTimestamp = now;
+    emit SaleLocked(_tradeId);
   }
 
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
@@ -159,6 +172,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     );
     tradeStatus[_tradeId].refundInitiated = true;
     tradeStatus[_tradeId].sellTransferInitiated = false;
+    emit RefundRequested(_tradeId);
     checkSteamInventory(_tradeId, false, this.fulfillSellerCheck.selector);
   }
 
@@ -240,11 +254,17 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem = _itemFound && !_buyer;
       tradeStatus[_tradeId].buyerHoldsItem = _itemFound && _buyer;
       // if item is found in buyer inventory, send all deposited funds to seller and complete trade
-      if (_buyer && tradeStatus[_tradeId].depositBalance >= trade[_tradeId].askingPrice) {
-        resolvePayout(_tradeId);
+      if (_buyer) {
+        emit BuyerHasItem(_tradeId);
+        if (tradeStatus[_tradeId].depositBalance >= trade[_tradeId].askingPrice) {
+          resolvePayout(_tradeId);
+        }
       }
-      else if (!_buyer && tradeStatus[_tradeId].depositBalance >= 0 && tradeStatus[_tradeId].refundInitiated) {
-        refundBeforeTrade(_tradeId);
+      else if (!_buyer) {
+        emit SellerHasItem(_tradeId);
+        if (tradeStatus[_tradeId].depositBalance >= 0 && tradeStatus[_tradeId].refundInitiated) {
+          refundBeforeTrade(_tradeId);
+        }
       }
     }
     else { // update status as best as possible since item not found
@@ -276,6 +296,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
     // update reputation ticker with successful trade.
     reputation[trade[_tradeId].buyer.addr] += 1;
     reputation[trade[_tradeId].seller.addr] += 1;
+
+    emit SaleCompleted(_tradeId);
   }
 
   // called by oracle fulfillment via logic in @fulfillSellerCheck && @resolveTrade. ends trade
@@ -299,6 +321,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     (_t.buyer.addr).transfer(_tStatus.depositBalance - _refundFee);
     withdrawableEth += _refundFee;
     tradeStatus[_tradeId].depositBalance = 0;
+    emit RefundGranted(_tradeId);
   }
 
   // return: (final payout, fee)
