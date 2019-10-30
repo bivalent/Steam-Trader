@@ -1,6 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const h = require('chainlink').helpers
 const l = require('./helpers/linkToken')
+const uuid = require('uuidv4')
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { expectRevert, time } = require('openzeppelin-test-helpers')
 
@@ -41,8 +43,9 @@ contract('SteamTrader', accounts => {
     addr: defaultAccount,
     steamId: sellerSteamId,
   }
+
   var testTrade = {
-    tradeId: '098098-123123-1asdasf-123asf',
+    tradeId: '0980981231231asdasf123asf',
     buyer: testBuyer,
     seller: testSeller,
     appId: appId,
@@ -54,44 +57,52 @@ contract('SteamTrader', accounts => {
   // Represents 1 LINK for testnet requests
   const payment = web3.utils.toWei('1')
 
-  let link, oc, cc
+  let link, oc, st, tradeId
 
+  // setup contracts and create new trade for testing
   beforeEach(async () => {
     link = await l.linkContract(defaultAccount)
     oc = await Oracle.new(link.address, { from: defaultAccount })
-    cc = await SteamTrader.new(link.address, { from: consumer })
+    st = await SteamTrader.new(link.address, { from: consumer })
     await oc.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
+    tradeId = uuidv4().replace(/-/g, '')
+    var tradeIdConf = await st.createTrade(
+      tradeId,
+      user_id,
+      payment,
+      assetid,
+      classid,
+      instanceid,
+      appid,
+      context,
+      {from: consumer}
+    )
+    assert.equal(tradeId, tradeIdConf)
   })
-  /*
-  address _oracle,
-  bytes32 _jobId,
-  uint256 _payment,
-  Trade memory _trade,
-  bool _buyer
-  */
-  describe('#createRequest', () => {
-    context('without LINK', () => {
+
+  describe('#buyItem', () => {
+    context('without ETH', () => {
       it('reverts', async () => {
         await expectRevert.unspecified(
-          cc.checkSteamInventory(oc.address, jobId, payment, testTrade, false, {
-            from: consumer,
+          st.buyItem(tradeId, testBuyer.steamId, {
+            from: stranger,
           }),
         )
       })
     })
 
-    context('with LINK', () => {
+    context('with ETH', () => {
       let request
 
       beforeEach(async () => {
-        await link.transfer(cc.address, web3.utils.toWei('1', 'ether'))
+        await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
       })
 
       context('sending a request to a specific oracle contract address', () => {
         it('triggers a log event in the new Oracle contract', async () => {
-          const tx = await cc.createRequestTo(
+          const tx = await st.createRequestTo(
             oc.address,
             jobId,
             payment,
@@ -103,7 +114,7 @@ contract('SteamTrader', accounts => {
           assert.equal(oc.address, tx.receipt.rawLogs[3].address)
           assert.equal(
             request.topic,
-            web3.utils.keccak256(
+            web3.utils.kestak256(
               'OracleRequest(bytes32,address,bytes32,uint256,address,bytes4,uint256,uint256,bytes)',
             ),
           )
@@ -118,8 +129,8 @@ contract('SteamTrader', accounts => {
     let request
 
     beforeEach(async () => {
-      await link.transfer(cc.address, web3.utils.toWei('1', 'ether'))
-      const tx = await cc.createRequestTo(
+      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
+      const tx = await st.createRequestTo(
         oc.address,
         jobId,
         payment,
@@ -132,7 +143,7 @@ contract('SteamTrader', accounts => {
     })
 
     it('records the data given to it by the oracle', async () => {
-      const currentPrice = await cc.data.call()
+      const currentPrice = await st.data.call()
       assert.equal(
         web3.utils.toHex(currentPrice),
         web3.utils.padRight(expected, 64),
@@ -146,7 +157,7 @@ contract('SteamTrader', accounts => {
         request.id = otherId
       })
 
-      it('does not accept the data provided', async () => {
+      it('does not astept the data provided', async () => {
         await expectRevert.unspecified(
           h.fulfillOracleRequest(oc, request, response, {
             from: oracleNode,
@@ -156,9 +167,9 @@ contract('SteamTrader', accounts => {
     })
 
     context('when called by anyone other than the oracle contract', () => {
-      it('does not accept the data provided', async () => {
+      it('does not astept the data provided', async () => {
         await expectRevert.unspecified(
-          cc.fulfill(request.id, response, { from: stranger }),
+          st.fulfill(request.id, response, { from: stranger }),
         )
       })
     })
@@ -168,8 +179,8 @@ contract('SteamTrader', accounts => {
     let request
 
     beforeEach(async () => {
-      await link.transfer(cc.address, web3.utils.toWei('1', 'ether'))
-      const tx = await cc.createRequestTo(
+      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
+      const tx = await st.createRequestTo(
         oc.address,
         jobId,
         payment,
@@ -183,7 +194,7 @@ contract('SteamTrader', accounts => {
     context('before the expiration time', () => {
       it('cannot cancel a request', async () => {
         await expectRevert(
-          cc.cancelRequest(
+          st.cancelRequest(
             request.id,
             request.payment,
             request.callbackFunc,
@@ -203,7 +214,7 @@ contract('SteamTrader', accounts => {
       context('when called by a non-owner', () => {
         it('cannot cancel a request', async () => {
           await expectRevert.unspecified(
-            cc.cancelRequest(
+            st.cancelRequest(
               request.id,
               request.payment,
               request.callbackFunc,
@@ -216,7 +227,7 @@ contract('SteamTrader', accounts => {
 
       context('when called by an owner', () => {
         it('can cancel a request', async () => {
-          await cc.cancelRequest(
+          await st.cancelRequest(
             request.id,
             request.payment,
             request.callbackFunc,
@@ -230,12 +241,12 @@ contract('SteamTrader', accounts => {
 
   describe('#withdrawLink', () => {
     beforeEach(async () => {
-      await link.transfer(cc.address, web3.utils.toWei('1', 'ether'))
+      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
     })
 
     context('when called by a non-owner', () => {
       it('cannot withdraw', async () => {
-        await expectRevert.unspecified(cc.withdrawLink({ from: stranger }))
+        await expectRevert.unspecified(st.withdrawLink({ from: stranger }))
       })
     })
 
@@ -243,7 +254,7 @@ contract('SteamTrader', accounts => {
       it('transfers LINK to the owner', async () => {
         const beforeBalance = await link.balanceOf(consumer)
         assert.equal(beforeBalance, '0')
-        await cc.withdrawLink({ from: consumer })
+        await st.withdrawLink({ from: consumer })
         const afterBalance = await link.balanceOf(consumer)
         assert.equal(afterBalance, web3.utils.toWei('1', 'ether'))
       })
