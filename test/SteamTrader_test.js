@@ -1,8 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const h = require('chainlink').helpers
 const l = require('./helpers/linkToken')
-const truffleAssert = require('truffle-assertions');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuidv4')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { expectRevert, time } = require('openzeppelin-test-helpers')
@@ -25,7 +24,6 @@ contract('SteamTrader', accounts => {
 
   const sellerSteamId = '76561197993433424'
   const buyerSteamId = '76561197993433424'
-  const ethFeePerc = 5
   const appId = 470
   const inventoryContext = 2
   const assetid = 6908576449
@@ -42,11 +40,12 @@ contract('SteamTrader', accounts => {
     steamId: buyerSteamId,
   }
   var testSeller = {
-    addr: consumer,
+    addr: defaultAccount,
     steamId: sellerSteamId,
   }
 
   var testTrade = {
+    tradeId: '0980981231231asdasf123asf',
     buyer: testBuyer,
     seller: testSeller,
     appId: appId,
@@ -68,24 +67,19 @@ contract('SteamTrader', accounts => {
     await oc.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
-    tradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
-    var tx = await st.createTrade(
+    tradeId = uuidv4().replace(/-/g, '')
+    var tradeIdConf = await st.createTrade(
       tradeId,
-      testSeller.steamId,
+      user_id,
       payment,
       assetid,
       classid,
       instanceid,
-      appId,
-      inventoryContext,
+      appid,
+      context,
       {from: consumer}
     )
-    var trade = await st.trade.call(tradeId)
-    truffleAssert.eventEmitted(tx, 'TradeCreated', (ev) => {
-      return ev.tradeId == tradeId;
-    })
-    assert.equal(trade.seller.steamId, testSeller.steamId)
-    assert.equal(trade.seller.addr, testSeller.addr)
+    assert.equal(tradeId, tradeIdConf)
   })
 
   describe('#buyItem', () => {
@@ -93,60 +87,38 @@ contract('SteamTrader', accounts => {
       it('reverts', async () => {
         await expectRevert.unspecified(
           st.buyItem(tradeId, testBuyer.steamId, {
-            from: stranger
-          })
+            from: stranger,
+          }),
         )
       })
     })
 
     context('with ETH', () => {
       let request
-      it('triggers a buy event in the steam trader contract', async () => {
-        const tx = await st.buyItem(tradeId, testBuyer.steamId, {
-          from: stranger, value: payment
+
+      beforeEach(async () => {
+        await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
+      })
+
+      context('sending a request to a specific oracle contract address', () => {
+        it('triggers a log event in the new Oracle contract', async () => {
+          const tx = await st.createRequestTo(
+            oc.address,
+            jobId,
+            payment,
+            testTrade,
+            false,
+            { from: consumer },
+          )
+          request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+          assert.equal(oc.address, tx.receipt.rawLogs[3].address)
+          assert.equal(
+            request.topic,
+            web3.utils.kestak256(
+              'OracleRequest(bytes32,address,bytes32,uint256,address,bytes4,uint256,uint256,bytes)',
+            ),
+          )
         })
-
-        var trade = await st.trade.call(tradeId)
-        // test trade updated
-        assert.equal(trade.buyer.steamId, testBuyer.steamId)
-        assert.equal(trade.buyer.addr, testBuyer.addr)
-
-        // test event emitted
-        truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
-          return ev.tradeId == tradeId;
-        })
-      })
-    })
-  })
-
-  describe('#startTrade', () => {
-    beforeEach(async () => {
-      const tx = await st.buyItem(tradeId, testBuyer.steamId, {
-        from: stranger, value: payment
-      })
-      // fail if trade not set up for tests
-      truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
-        return ev.tradeId == tradeId;
-      })
-    })
-
-    context('withoutRefundLock', () => {
-      it('succeeds and sends buyer money minus the fee.', async() => {
-
-      })
-    })
-
-    context('withRefundLock', () => {
-      it('reverts', async() => {
-
-      })
-    })
-  })
-
-  describe('#requestRefund', () => {
-    context('withoutSaleLocked', () => {
-      it('succeeds and sends buyer money minus the fee.', async() => {
-
       })
     })
   })
