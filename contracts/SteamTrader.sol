@@ -32,7 +32,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   mapping (bytes32 => TradeStatus) public tradeStatus;
 
   // request Id -> tradeId. So we know which trade a given oracle request is for
-  mapping (bytes32 => bytes32) requestTracker;
+  mapping (bytes32 => bytes32) public requestTracker;
   struct Item {
     uint64 assetid;
     uint64 classid;
@@ -103,7 +103,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     emit TradeCreated(_uuid);
   }
 
-  // seller runs so the contract displays he/she has the item
+  // run by anybody so the contract displays if seller has the item
   function requestTradeItemValidation(
     bytes32 _tradeId
   ) external inProgressTradeOnly(_tradeId) hasAvailableLINKFunds(oraclePayment)
@@ -152,7 +152,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   }
 
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
-  function confirmTrade(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
+  function requestTradeConfirmation(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Try after lock period ends.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
