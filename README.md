@@ -1,6 +1,6 @@
-# Demo Chainlink Truffle Box for Solidity 5
+# Steam Trader
 
-Implementation of a [Chainlink requesting contract](https://docs.chain.link/docs/create-a-chainlinked-project).
+Implementation of a [Chainlink requesting contract](https://docs.chain.link/docs/create-a-chainlinked-project) created for the CoinList ChainLink hackathon. Thanks to Thomas and the CL team for the helpful Q&A in discord!
 
 ## Requirements
 
@@ -68,13 +68,13 @@ Node v10.15.1
 In the `request-data.js` script, example parameters are provided for you. You can change the oracle address, Job ID, and parameters based on the information available on [our documentation](https://docs.chain.link/docs/testnet-oracles).
 
 ```bash
-npx truffle exec scripts/request-data.js --network live
+npx truffle exec scripts/request-data.js --network ropsten
 ```
 
 This creates a request and will return the transaction ID, for example:
 
 ```
-Using network 'live'.
+Using network 'ropsten'.
 
 Creating request on contract: 0x972DB80842Fdaf6015d80954949dBE0A1700705E
 0x828f256109f22087b0804a4d1a5c25e8ce9e5ac4bbc777b5715f5f9e5b181a4b
@@ -82,10 +82,10 @@ Truffle v5.0.25 (core: 5.0.25)
 Node v10.15.1
 ```
 
-After creating a request on a live network, you will want to wait 3 blocks for the Chainlink node to respond. Then call the `read-contract.js` script to read the contract's state.
+After creating a request on a live network (ropsten, mainnet), you will want to wait 3 blocks for the Chainlink node to respond. Then call the `read-contract.js` script to read the contract's state.
 
 ```bash
-npx truffle exec scripts/read-contract.js --network live
+npx truffle exec scripts/read-contract.js --network ropsten
 ```
 
 Once the oracle has responded, you will receive a value similar to the one below:
