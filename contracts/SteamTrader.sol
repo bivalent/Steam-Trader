@@ -66,8 +66,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   event FundingSecured(bytes32 indexed tradeId);
   event SaleLocked(bytes32 indexed tradeId);
   event SaleCompleted(bytes32 indexed tradeId);
-  event SellerHasItem(bytes32 tradeId);
-  event BuyerHasItem(bytes32 tradeId);
+  event SellerHasItem(bytes32 indexed tradeId);
+  event BuyerHasItem(bytes32 indexed tradeId);
   event RefundRequested(bytes32 indexed tradeId);
   event RefundGranted(bytes32 indexed tradeId);
 
@@ -142,7 +142,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   // allow seller to declare he's sending item so a refund can't be issued.
   function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) returns (uint) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime,
+      "Cannot start trade due to refund request. Wait for lock to expire and try again.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
     tradeStatus[_tradeId].lockBlockTimestamp = now;
@@ -152,7 +153,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
   function confirmTrade(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime,
+      "Cannot confirm trade due to refund lock, probably requested due to delay in sale. Wait for refund to expire and try again.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
 
@@ -168,7 +170,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days,
+      "Cannot request refund due to trade having been locked by seller. Wait for lock to expire & try again."
     );
     tradeStatus[_tradeId].refundInitiated = true;
     tradeStatus[_tradeId].sellTransferInitiated = false;
@@ -202,7 +205,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
     require(
       _selector == this.fulfillBuyerCheck.selector
       || _selector == this.fulfillSellerCheck.selector
-      || _selector == this.fulfillTradeItemValidation.selector
+      || _selector == this.fulfillTradeItemValidation.selector,
+      "Selector somehow not in allowed function list. Check contract code & calling request."
     );
     Trade memory _trade = trade[_tradeId];
     Item memory _item = _trade.item;
@@ -334,14 +338,14 @@ contract SteamTrader is ChainlinkClient, Ownable {
   }
 
   function withdrawEtherFees(uint256 _amount) external onlyOwner {
-    require(_amount <= withdrawableEth); // don't want to withdraw people's payments!
+    require(_amount <= withdrawableEth, "Too much requested. Only request what is available"); // don't want to withdraw people's payments!
     msg.sender.transfer(_amount);
     withdrawableEth -= _amount;
   }
 
   // so we can have sales!
   function setFeePerc(uint8 _perc) external onlyOwner {
-    require(0 < _perc && _perc < 100);
+    require(0 < _perc && _perc < 100, "Percent was <0 or >100. Please enter valid percent 0-100.");
     contractFeePerc = _perc;
   }
 
@@ -493,22 +497,22 @@ contract SteamTrader is ChainlinkClient, Ownable {
   }
 
   modifier onlyBuyer(bytes32 _tradeId) {
-    require(trade[_tradeId].buyer.addr == msg.sender);
+    require(trade[_tradeId].buyer.addr == msg.sender, "Only buyer allowed to call this function.");
     _;
   }
 
   modifier onlySeller(bytes32 _tradeId) {
-    require(trade[_tradeId].seller.addr == msg.sender);
+    require(trade[_tradeId].seller.addr == msg.sender, "Only seller allowed to call this function.");
     _;
   }
 
   modifier sellTransferIsInitiated(bytes32 _tradeId) {
-    require(tradeStatus[_tradeId].sellTransferInitiated);
+    require(tradeStatus[_tradeId].sellTransferInitiated, "sell transfer has not been initiated. Initate sale with startTrade() first.");
     _;
   }
 
   modifier inProgressTradeOnly(bytes32 _tradeId) {
-    require(tradeStatus[_tradeId].init && !tradeStatus[_tradeId].complete);
+    require(tradeStatus[_tradeId].init && !tradeStatus[_tradeId].complete, "Trade not in progress. Either completed or not started. Verify correct tradeId.");
     _;
   }
   /**
