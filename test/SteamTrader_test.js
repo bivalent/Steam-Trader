@@ -217,7 +217,6 @@ contract('SteamTrader', accounts => {
         })
       })
     })
-
     describe('#requestRefund', () => {
       context('withoutSaleLocked', () => {
         it('succeeds and locks the refund.', async() => {
@@ -251,7 +250,6 @@ contract('SteamTrader', accounts => {
         })
       })
     })
-
     describe('#checkSteamInventory', () => {
       context('When it creates a chainlink request', () => {
         it('Updates requestTracker correctly on success', async() => {
@@ -289,7 +287,7 @@ contract('SteamTrader', accounts => {
       })
     })
     describe ('#fulfillTradeItemValidation', () => {
-      let tx, reqId
+      let tx, reqId, txFulfill, request, rawLogs
       beforeEach(async() => {
         // make oracle request
         tx = await st.requestTradeItemValidation(tradeId, {from: testBuyer.addr})
@@ -297,19 +295,52 @@ contract('SteamTrader', accounts => {
           reqId = ev.id
           return true
         })
-      })
-      it('Emits SellerHasItem(tradeId) when oracle returns true', async() => {
-        //console.log(tx.receipt.rawLogs)
         request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+      })
+      context('When oracle returns item is found', () => {
         const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        var tradeStatus = await st.tradeStatus.call(tradeId)
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('SellerHasItem(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
-
-        assert(tradeStatus.sellerHoldsItem)
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Emits SellerHasItem(tradeId) when oracle returns true', async() => {
+          var tradeStatus = await st.tradeStatus.call(tradeId)
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], tradeId)
+          assert(tradeStatus.sellerHoldsItem)
+        })
+      })
+      context('When oracle returns item is _not_ found', () => {
+        const response = evmFalse
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills false', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Does not emit SellerHasItem(tradeId) when oracle returns false', async() => {
+          var tradeStatus = await st.tradeStatus.call(tradeId)
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
+          ) {}
+          assert.equal(i, rawLogs.length, "Event found in RawLogs.")
+          assert(!tradeStatus.sellerHoldsItem)
+        })
       })
     })
 
@@ -345,42 +376,88 @@ contract('SteamTrader', accounts => {
       })
     })
     describe ('#fulfillBuyerCheck', () => {
-      let tx, reqId
+      let tx, reqId, i, rawLogs, request, trade
+      let endSellerBalance, begSellerBalance, withdrawableEthFees, newWithdrawableEthFees
       beforeEach(async() => {
         // lock in trade
         tx = await st.startTrade(tradeId, {from: testSeller.addr})
         truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
           return ev.tradeId == tradeId;
         })
-
         // make oracle request
         tx = await st.requestTradeConfirmation(tradeId, {from: testSeller.addr})
         truffleAssert.eventEmitted(tx, 'ChainlinkRequested', (ev) => {
           reqId = ev.id
           return true
         })
-      })
-      it('Emits BuyerHasItem(tradeId) when oracle returns true', async() => {
-        //console.log(tx.receipt.rawLogs)
         request = h.decodeRunRequest(tx.receipt.rawLogs[3])
-        const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
 
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('BuyerHasItem(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
+        withdrawableEthFees = await st.viewWithdrawableEtherFees({from: consumer})
+        begSellerBalance = await web3.eth.getBalance(testSeller.addr)
       })
-      it('Emits BuyerHasItem(tradeId) when oracle returns true', async() => {
-        //console.log(tx.receipt.rawLogs)
-        request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+      context('when the item is found', () => {
         const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('BuyerHasItem(bytes32)'))
-        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Emits BuyerHasItem(tradeId) when oracle returns true', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('BuyerHasItem(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], tradeId, "Mismatched TradeIds")
+        })
+        it('Emits SaleCompleted(tradeId) when oracle returns true', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SaleCompleted(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], tradeId, "Mismatched TradeIds")
+        })
+        it('transfers the ether deposit to the buyer and saves the profit.', async() => {
+          endSellerBalance = await web3.eth.getBalance(testSeller.addr)
+          newWithdrawableEthFees = await st.viewWithdrawableEtherFees({from: consumer})
+          var fee = await st.contractFeePerc.call()
+          var ownerEarnings = (testTrade.askingPrice * fee) / 100
+          var sellerEarnings = testTrade.askingPrice - ownerEarnings
+          assert.equal(ownerEarnings, newWithdrawableEthFees - withdrawableEthFees, "unexpected fee mismatch")
+          assert(endSellerBalance > begSellerBalance, "ether didn't transfer")
+          assert.equal(sellerEarnings, endSellerBalance - begSellerBalance, "Fee calculation isn't correct")
+        })
+      })
+      context('when the item is not found', () => {
+        const response = evmFalse
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle returns false', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Does not emit BuyerHasItem(tradeId) when oracle returns false', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('BuyerHasItem(bytes32)'); i++
+          ) {}
+          assert.equal(i, rawLogs.length, "Event found in RawLogs.")
+        })
+        it('Does not SaleCompleted(tradeId) when oracle returns false', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SaleCompleted(bytes32)'); i++
+          ) {}
+          assert.equal(i, rawLogs.length, "Event found in RawLogs.")
+        })
       })
     })
 
@@ -428,7 +505,9 @@ contract('SteamTrader', accounts => {
       })
     })
     describe ('#fulfillSellerCheck', () => {
-      let tx, reqId, i
+      let tx, reqId, i, rawLogs, txFulfill
+      let begBuyerBalance, endBuyerBalance
+      let withdrawableEthFees, newWithdrawableEthFees
       beforeEach(async() => {
         // lock in trade
         tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
@@ -439,43 +518,77 @@ contract('SteamTrader', accounts => {
           reqId = ev.id
           return true
         })
-      })
-      it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
         request = h.decodeRunRequest(tx.receipt.rawLogs[4])
-        const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        var rawLogs = txFulfill.receipt.rawLogs
-        for(i = 0; i < rawLogs.length
-          && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
-        ) {}
-        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
-        assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        withdrawableEthFees = await st.viewWithdrawableEtherFees({from: consumer})
+        begBuyerBalance = await web3.eth.getBalance(testBuyer.addr)
       })
-      it('Emits nested SellerHasItem(tradeId) when oracle returns true', async() => {
-        request = h.decodeRunRequest(tx.receipt.rawLogs[4])
+      context('When Item is Found', () => {
         const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        var tradeStatus = await st.tradeStatus.call(tradeId)
-        var rawLogs = txFulfill.receipt.rawLogs
-        for(i = 0; i < rawLogs.length
-          && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
-        ) {}
-        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
-        assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
-
-        assert(tradeStatus.sellerHoldsItem)
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Emits nested SellerHasItem(tradeId) when oracle returns true', async() => {
+          var tradeStatus = await st.tradeStatus.call(tradeId)
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
+          assert(tradeStatus.sellerHoldsItem)
+        })
+        it('Emits nested RefundGranted(tradeId) when oracle returns true', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('RefundGranted(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
+        })
+        it('transfers the ether deposit to the buyer and saves the profit.', async() => {
+          endBuyerBalance = await web3.eth.getBalance(testBuyer.addr)
+          newWithdrawableEthFees = await st.viewWithdrawableEtherFees({from: consumer})
+          var fee = await st.contractFeePerc.call()
+          var ownerEarnings = (testTrade.askingPrice * fee) / 100
+          var refund = testTrade.askingPrice - ownerEarnings
+          assert.equal(ownerEarnings, newWithdrawableEthFees - withdrawableEthFees, "unexpected fee mismatch")
+          assert(endBuyerBalance > begBuyerBalance, "ether didn't transfer")
+          assert.equal(refund, endBuyerBalance - begBuyerBalance, "Fee calculation isn't correct")
+        })
       })
-      it('Emits nested RefundGranted(tradeId) when oracle returns true', async() => {
-        //console.log(tx.receipt.rawLogs)
-        request = h.decodeRunRequest(tx.receipt.rawLogs[4])
-        const response = evmTrue
-        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        var rawLogs = txFulfill.receipt.rawLogs
-        for(i = 0; i < rawLogs.length
-          && rawLogs[i].topics[0] != web3.utils.soliditySha3('RefundGranted(bytes32)'); i++
-        ) {}
-        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
-        assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
+      context('When Item is Not Found', () => {
+        const response = evmFalse
+        beforeEach(async() => {
+          txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+          rawLogs = txFulfill.receipt.rawLogs
+        })
+        it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+          ) {}
+          assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+          assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+        })
+        it('Does not emit nested SellerHasItem(tradeId) when oracle returns true', async() => {
+          var tradeStatus = await st.tradeStatus.call(tradeId)
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
+          ) {}
+          assert.equal(i, rawLogs.length, "Event found in RawLogs.")
+          assert(!tradeStatus.sellerHoldsItem)
+        })
+        it('Does not emit nested RefundGranted(tradeId) when oracle returns true', async() => {
+          for(i = 0; i < rawLogs.length
+            && rawLogs[i].topics[0] != web3.utils.soliditySha3('RefundGranted(bytes32)'); i++
+          ) {}
+          assert.equal(i, rawLogs.length, "Event found in RawLogs.")
+        })
       })
     })
   })
