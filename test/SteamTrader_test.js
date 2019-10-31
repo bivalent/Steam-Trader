@@ -94,7 +94,7 @@ contract('SteamTrader', accounts => {
     assert.equal(trade.seller.addr, testSeller.addr)
   })
 
-  describe('#buyItem', () => {
+  describe('#depositItemPayment', () => {
     context('without ETH', () => {
       it('reverts', async () => {
         await expectRevert.unspecified(
@@ -162,8 +162,8 @@ contract('SteamTrader', accounts => {
     })
   })
 
-  describe('#startTrade', () => {
-    beforeEach(async () => {
+  context('after the item payment is made and link deposited by buyer', () => {
+    beforeEach(async() => {
       const tx = await st.buyItem(tradeId, testBuyer.steamId, {
         from: testBuyer.addr, value: oneEth
       })
@@ -176,77 +176,74 @@ contract('SteamTrader', accounts => {
       assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
     })
 
-    context('withoutRefundLock', () => {
-      it('succeeds and locks the sale.', async() => {
-        const tx = await st.startTrade(tradeId, {from: testSeller.addr})
-        truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
-          return ev.tradeId == tradeId;
+    describe('#startTrade', () => {
+      context('withoutRefundLock', () => {
+        it('succeeds and locks the sale.', async() => {
+          const tx = await st.startTrade(tradeId, {from: testSeller.addr})
+          truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
+            return ev.tradeId == tradeId;
+          })
+        })
+      })
+      context('withRefundLock', () => {
+        it('reverts', async() => {
+          const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
+          truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
+            return ev.tradeId == tradeId;
+          })
+          await expectRevert.unspecified(
+            st.startTrade(tradeId, {from: testSeller.addr})
+          )
+        })
+      })
+      context('started by non-seller', () => {
+        it('reverts', async() => {
+          await expectRevert.unspecified(
+            st.startTrade(tradeId, {from: testBuyer.addr})
+          )
         })
       })
     })
 
-    context('withRefundLock', () => {
-      it('reverts', async() => {
-        const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
-        truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
-          return ev.tradeId == tradeId;
+    describe('#requestRefund', () => {
+      context('withoutSaleLocked', () => {
+        it('succeeds and locks the refund.', async() => {
+          const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
+          truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
+            return ev.tradeId == tradeId;
+          })
         })
-        await expectRevert.unspecified(
-          st.startTrade(tradeId, {from: testSeller.addr})
-        )
       })
-    })
-
-    context('started by non-seller', () => {
-      it('reverts', async() => {
-        await expectRevert.unspecified(
-          st.startTrade(tradeId, {from: testBuyer.addr})
-        )
+      context('withSaleLockedIn', () => {
+        beforeEach(async() => {
+          const tx = await st.startTrade(tradeId, {from: testSeller.addr})
+          truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
+            return ev.tradeId == tradeId;
+          })
+        })
+        it('reverts', async() => {
+          await expectRevert.unspecified(
+            st.requestEthRefund(tradeId, {from: testBuyer.addr})
+          )
+        })
       })
-    })
-  })
-
-  describe('#requestRefund', () => {
-    beforeEach(async () => {
-      const tx = await st.buyItem(tradeId, testBuyer.steamId, {
-        from: testBuyer.addr, value: oneEth
-      })
-      // fail if trade not set up for tests
-      truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
-        return ev.tradeId == tradeId;
-      })
-      // give user & the user deposits 1 LINK into contract. assert balance is correct
-      assert(await link.transfer(stranger, oneEth), "LINK transfer to Stranger failed.")
-      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
-    })
-
-    context('withoutSaleLocked', () => {
-      it('succeeds and locks the refund.', async() => {
-        const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
-        truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
-          return ev.tradeId == tradeId;
+      context('not from buyer', () => {
+        it('reverts', async() => {
+          await expectRevert.unspecified(
+            st.requestEthRefund(tradeId, {from: testSeller.addr})
+          )
         })
       })
     })
-    context('withSaleLockedIn', () => {
-      beforeEach(async() => {
-        const tx = await st.startTrade(tradeId, {from: testSeller.addr})
-        truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
-          return ev.tradeId == tradeId;
+
+    describe ('#fulfillTradeItemValidation', () => {
+      context('when validation is requested', () => {
+        it('reverts for trade not in progress', async() => {
+          
         })
       })
-      it('reverts', async() => {
-        await expectRevert.unspecified(
-          st.requestEthRefund(tradeId, {from: testBuyer.addr})
-        )
-      })
     })
-    context('not from buyer', () => {
-      it('reverts', async() => {
-        await expectRevert.unspecified(
-          st.requestEthRefund(tradeId, {from: testSeller.addr})
-        )
-      })
-    })
+    //describe('#fufillTradeConfirmation')
+    //describe('#fufillRefundRequest')
   })
 })
