@@ -130,7 +130,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     Trade memory _t = trade[_tradeId];
     // require not bought yet and full amount paid (no more, no less)
-    require(_t.buyer.addr == address(0) && _t.askingPrice == msg.value);
+    require(_t.buyer.addr == address(0) && _t.askingPrice == msg.value, "Buyer already exists or payment didnt match");
     // update trade with buyer
     trade[_tradeId].buyer.addr = msg.sender;
     trade[_tradeId].buyer.steamId = _steamId;
@@ -142,7 +142,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   // allow seller to declare he's sending item so a refund can't be issued.
   function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) returns (uint) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Wait for lock to end.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
     tradeStatus[_tradeId].lockBlockTimestamp = now;
@@ -152,7 +152,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
   function confirmTrade(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Try after lock period ends.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
 
@@ -168,7 +168,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days, "Sale locked in. Try after lock period ends."
     );
     tradeStatus[_tradeId].refundInitiated = true;
     tradeStatus[_tradeId].sellTransferInitiated = false;
@@ -202,7 +202,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     require(
       _selector == this.fulfillBuyerCheck.selector
       || _selector == this.fulfillSellerCheck.selector
-      || _selector == this.fulfillTradeItemValidation.selector
+      || _selector == this.fulfillTradeItemValidation.selector, "Wrong function specified as selector"
     );
     Trade memory _trade = trade[_tradeId];
     Item memory _item = _trade.item;
@@ -312,7 +312,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem
         && (tradeStatus[_tradeId].refundInitiated
         && !tradeStatus[_tradeId].sellTransferInitiated)
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days,
+      "Seller doesnt have item or sale locked in. Try after lock period ends.");
 
     TradeStatus memory _tStatus = tradeStatus[_tradeId];
     Trade memory _t = trade[_tradeId];
