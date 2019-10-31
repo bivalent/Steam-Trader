@@ -64,6 +64,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
 
   event TradeCreated(bytes32 indexed tradeId);
   event FundingSecured(bytes32 indexed tradeId);
+  event LinkReceived(address sender, uint amount, bytes data);
   event SaleLocked(bytes32 indexed tradeId);
   event SaleCompleted(bytes32 indexed tradeId);
   event SellerHasItem(bytes32 indexed tradeId);
@@ -140,7 +141,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   }
 
   // allow seller to declare he's sending item so a refund can't be issued.
-  function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) returns (uint) {
+  function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Wait for lock to end.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
@@ -172,6 +173,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     );
     tradeStatus[_tradeId].refundInitiated = true;
     tradeStatus[_tradeId].sellTransferInitiated = false;
+    tradeStatus[_tradeId].lockBlockTimestamp = now;
     emit RefundRequested(_tradeId);
     checkSteamInventory(_tradeId, false, this.fulfillSellerCheck.selector);
   }
@@ -409,15 +411,9 @@ contract SteamTrader is ChainlinkClient, Ownable {
   )
     public
     onlyLINK
-    permittedFunctionsForLINKRequests
   {
-    assembly { // solhint-disable-line no-inline-assembly
-      mstore(add(_data, 36), _sender) // ensure correct sender is passed
-      mstore(add(_data, 68), _amount) // ensure correct amount is passed
-    }
-    // solhint-disable-next-line avoid-low-level-calls
-    (bool success,) = address(this).delegatecall(_data); // calls oracleRequest or depositFunds
-    require(success, "Unable to create request");
+    emit LinkReceived(_sender, _amount, _data);
+    depositLinkFunds(_sender, _amount);
   }
 
   /**
@@ -425,7 +421,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
    * @param _sender Address of the sender
    * @param _amount Amount of LINK sent (specified in wei)
    */
-  function depositLinkFunds(address _sender, uint256 _amount) external onlyLINK
+  function depositLinkFunds(address _sender, uint256 _amount) private onlyLINK
   {
     withdrawableLinkTokens[_sender] = withdrawableLinkTokens[_sender].add(_amount);
   }
@@ -462,32 +458,11 @@ contract SteamTrader is ChainlinkClient, Ownable {
     _;
   }
 
-  /**
-   * @dev Reverts if the given data does not begin with the `oracleRequest` function selector
-   */
-  modifier permittedFunctionsForLINKRequests() {
-    bytes4 funcSelector;
-    assembly { // solhint-disable-line no-inline-assembly
-      calldatacopy(funcSelector, 132, 4) // grab function selector from calldata
-    }
-    // only requestEthRefund and requestEthPayment allowed
-    require(
-      funcSelector[0] == this.requestEthRefund.selector
-        || funcSelector[0] == this.confirmTrade.selector
-        || funcSelector[0] == this.depositLinkFunds.selector,
-      "Must use whitelisted functions");
-    _;
-  }
-
   modifier onlyLINK() {
     require(msg.sender == getChainlinkToken(), "Must use LINK token");
     _;
   }
 
-  /**
-   * @dev Reverts if amount requested is greater than withdrawable balance
-   * @param _amount The given amount to compare to `withdrawableTokens`
-   */
   modifier hasAvailableLINKFunds(uint256 _amount) {
     require(withdrawableLinkTokens[msg.sender] >= _amount, "Amount required for oracle payment is greater than withdrawable balance");
     _;
@@ -510,14 +485,6 @@ contract SteamTrader is ChainlinkClient, Ownable {
 
   modifier inProgressTradeOnly(bytes32 _tradeId) {
     require(tradeStatus[_tradeId].init && !tradeStatus[_tradeId].complete);
-    _;
-  }
-  /**
-   * @dev Reverts if the given payload is less than needed to create a request
-   * @param _data The request payload
-   */
-  modifier validRequestLength(bytes memory _data) {
-    require(_data.length >= MINIMUM_REQUEST_LENGTH, "Invalid request length");
     _;
   }
 }
