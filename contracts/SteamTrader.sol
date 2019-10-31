@@ -32,7 +32,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   mapping (bytes32 => TradeStatus) public tradeStatus;
 
   // request Id -> tradeId. So we know which trade a given oracle request is for
-  mapping (bytes32 => bytes32) requestTracker;
+  mapping (bytes32 => bytes32) public requestTracker;
   struct Item {
     uint64 assetid;
     uint64 classid;
@@ -103,24 +103,12 @@ contract SteamTrader is ChainlinkClient, Ownable {
     emit TradeCreated(_uuid);
   }
 
-  // seller runs so the contract displays he/she has the item
+  // run by anybody so the contract displays if seller has the item
   function requestTradeItemValidation(
     bytes32 _tradeId
   ) external inProgressTradeOnly(_tradeId) hasAvailableLINKFunds(oraclePayment)
   {
     checkSteamInventory(_tradeId, false, this.fulfillTradeItemValidation.selector);
-  }
-
-  // chainlink fulfills to this that the item is found
-  function fulfillTradeItemValidation(bytes32 _requestId, bool _itemFound)
-    external
-    recordChainlinkFulfillment(_requestId)
-  {
-    bytes32 _tradeId = requestTracker[_requestId];
-    tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
-    if (_itemFound) {
-      emit SellerHasItem(_tradeId);
-    }
   }
 
   // function for buyer to deposit funds
@@ -142,6 +130,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
 
   // allow seller to declare he's sending item so a refund can't be issued.
   function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) {
+    require(tradeStatus[_tradeId].depositBalance > 0);
     require(!tradeStatus[_tradeId].refundInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Wait for lock to end.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
@@ -151,7 +140,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   }
 
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
-  function confirmTrade(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
+  function requestTradeConfirmation(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Try after lock period ends.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
@@ -167,6 +156,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   )
     external hasAvailableLINKFunds(oraclePayment)
   {
+    require(msg.sender == trade[_tradeId].buyer.addr || msg.sender == trade[_tradeId].seller.addr);
+    require(tradeStatus[_tradeId].depositBalance > 0);
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days, "Sale locked in. Try after lock period ends."
@@ -225,6 +216,19 @@ contract SteamTrader is ChainlinkClient, Ownable {
     requestId = sendChainlinkRequest(req, oraclePayment);
     requestTracker[requestId] = _trade.tradeId;
   }
+
+  // chainlink fulfills to this that the item is found
+  function fulfillTradeItemValidation(bytes32 _requestId, bool _itemFound)
+    external
+    recordChainlinkFulfillment(_requestId)
+  {
+    bytes32 _tradeId = requestTracker[_requestId];
+    tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
+    if (_itemFound) {
+      emit SellerHasItem(_tradeId);
+    }
+  }
+
 
   /**
    * @notice The fulfill method from requests created by this contract
@@ -314,7 +318,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem
         && (tradeStatus[_tradeId].refundInitiated
         && !tradeStatus[_tradeId].sellTransferInitiated)
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days,
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime,
       "Seller doesnt have item or sale locked in. Try after lock period ends.");
 
     TradeStatus memory _tStatus = tradeStatus[_tradeId];
