@@ -156,6 +156,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   )
     external hasAvailableLINKFunds(oraclePayment)
   {
+    require(msg.sender == trade[_tradeId].buyer.addr || msg.sender == trade[_tradeId].seller.addr);
     require(tradeStatus[_tradeId].depositBalance > 0);
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
@@ -317,7 +318,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem
         && (tradeStatus[_tradeId].refundInitiated
         && !tradeStatus[_tradeId].sellTransferInitiated)
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days,
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime,
       "Seller doesnt have item or sale locked in. Try after lock period ends.");
 
     TradeStatus memory _tStatus = tradeStatus[_tradeId];
