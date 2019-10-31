@@ -63,7 +63,7 @@ contract('SteamTrader', accounts => {
   // Represents 1 LINK for testnet requests
 
 
-  let link, oc, st, tradeId
+  let link, oc, st, tradeId, nonExistantTradeId
 
   // setup contracts and create new trade for testing
   beforeEach(async () => {
@@ -75,6 +75,7 @@ contract('SteamTrader', accounts => {
     })
     await st.setOracleAddress(oc.address, jobId, {from: consumer})
     tradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
+    nonExistantTradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
     var tx = await st.createTrade(
       tradeId,
       testSeller.steamId,
@@ -106,7 +107,6 @@ contract('SteamTrader', accounts => {
     })
 
     context('with ETH', () => {
-      let request
       it('triggers a buy event in the steam trader contract', async () => {
         const tx = await st.buyItem(tradeId, testBuyer.steamId, {
           from: testBuyer.addr, value: testTrade.askingPrice
@@ -121,6 +121,13 @@ contract('SteamTrader', accounts => {
         truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
           return ev.tradeId == tradeId;
         })
+      })
+      it('reverts for trade not in progress', async() => {
+        await expectRevert.unspecified(
+          st.buyItem(nonExistantTradeId, testBuyer.steamId, {
+            from: testBuyer.addr, value: testTrade.askingPrice
+          })
+        )
       })
     })
   })
@@ -184,6 +191,11 @@ contract('SteamTrader', accounts => {
             return ev.tradeId == tradeId;
           })
         })
+        it('reverts for trade not in progress', async() => {
+          await expectRevert.unspecified(
+            st.startTrade(nonExistantTradeId, {from: testSeller.addr})
+          )
+        })
       })
       context('withRefundLock', () => {
         it('reverts', async() => {
@@ -213,6 +225,16 @@ contract('SteamTrader', accounts => {
             return ev.tradeId == tradeId;
           })
         })
+        it('reverts for trade not in progress', async() => {
+          await expectRevert.unspecified(
+            st.startTrade(nonExistantTradeId, {from: testSeller.addr})
+          )
+        })
+        it('reverts when not from buyer', async() => {
+          await expectRevert.unspecified(
+            st.requestEthRefund(tradeId, {from: testSeller.addr})
+          )
+        })
       })
       context('withSaleLockedIn', () => {
         beforeEach(async() => {
@@ -227,19 +249,14 @@ contract('SteamTrader', accounts => {
           )
         })
       })
-      context('not from buyer', () => {
-        it('reverts', async() => {
-          await expectRevert.unspecified(
-            st.requestEthRefund(tradeId, {from: testSeller.addr})
-          )
-        })
-      })
     })
 
     describe ('#fulfillTradeItemValidation', () => {
       context('when validation is requested', () => {
         it('reverts for trade not in progress', async() => {
-          
+          await expectRevert.unspecified(
+            st.requestEthRefund(nonExistantTradeId, {from: testSeller.addr})
+          )
         })
       })
     })
