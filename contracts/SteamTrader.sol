@@ -142,6 +142,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
 
   // allow seller to declare he's sending item so a refund can't be issued.
   function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) {
+    require(tradeStatus[_tradeId].depositBalance > 0);
     require(!tradeStatus[_tradeId].refundInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Wait for lock to end.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
@@ -167,6 +168,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
   )
     external hasAvailableLINKFunds(oraclePayment)
   {
+    require(tradeStatus[_tradeId].depositBalance > 0);
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
       || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days, "Sale locked in. Try after lock period ends."
