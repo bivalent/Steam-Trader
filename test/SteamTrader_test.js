@@ -16,13 +16,18 @@ contract('SteamTrader', accounts => {
   const stranger = accounts[2]
   const consumer = accounts[3]
 
+  // give stranger & the stranger deposits 1 LINK into contract.
+  //depositEncoding = 0x1c343d46
+  let depositEncoding = web3.utils.keccak256('depositLinkFunds(address,uint256)')
+  const depositSelector = depositEncoding.slice(0,4);
+  //st.contract.methods.depositLinkFunds(stranger, oneEth).encodeABI()
   // These parameters are used to validate the data was received
   // on the deployed oracle contract. The Job ID only represents
   // the type of data, but will not work on a public testnet.
   // For the latest JobIDs, visit our docs here:
   // https://docs.chain.link/docs/testnet-oracles
   const jobId = web3.utils.toHex('4c7b7ffb66b344fbaa64995af81e355a')
-
+  const oneEth = web3.utils.toWei('1')
   const sellerSteamId = '76561197993433424'
   const buyerSteamId = '76561197993433424'
   const ethFeePerc = 5
@@ -52,11 +57,11 @@ contract('SteamTrader', accounts => {
     appId: appId,
     inventoryContext: inventoryContext,
     item: testItem,
-    askingPrice: web3.utils.toWei('1'),
+    askingPrice: oneEth,
   }
 
   // Represents 1 LINK for testnet requests
-  const payment = web3.utils.toWei('1')
+
 
   let link, oc, st, tradeId
 
@@ -68,16 +73,17 @@ contract('SteamTrader', accounts => {
     await oc.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
+    await st.setOracleAddress(oc.address, jobId, {from: consumer})
     tradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
     var tx = await st.createTrade(
       tradeId,
       testSeller.steamId,
-      payment,
-      assetid,
-      classid,
-      instanceid,
-      appId,
-      inventoryContext,
+      testTrade.askingPrice,
+      testItem.assetid,
+      testItem.classid,
+      testItem.instanceid,
+      testTrade.appId,
+      testTrade.inventoryContext,
       {from: consumer}
     )
     var trade = await st.trade.call(tradeId)
@@ -103,7 +109,7 @@ contract('SteamTrader', accounts => {
       let request
       it('triggers a buy event in the steam trader contract', async () => {
         const tx = await st.buyItem(tradeId, testBuyer.steamId, {
-          from: stranger, value: payment
+          from: testBuyer.addr, value: testTrade.askingPrice
         })
 
         var trade = await st.trade.call(tradeId)
@@ -119,174 +125,128 @@ contract('SteamTrader', accounts => {
     })
   })
 
+  describe('#linkDeposits', () => {
+    var strangerDeposit;
+    var startStrangerLinkWallet;
+    beforeEach(async () => {
+      assert(await link.transfer(stranger, oneEth), "LINK transfer to Stranger failed.")
+      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+      strangerDeposit = await st.balanceOfLink(stranger)
+      startStrangerLinkWallet = await link.balanceOf(stranger)
+    })
+
+    context('when LINK is deposited', () => {
+      it('updates the LINK balance on the contract', async() => {
+        assert.equal(oneEth, strangerDeposit)
+      })
+    })
+    context('when LINK is withdrawn', () => {
+      it('updates the LINK balance on the contract and shows in user wallet', async() => {
+        assert.equal(oneEth, strangerDeposit)
+        // withdraw all link to stranger
+        const tx = await st.withdrawLink(stranger, strangerDeposit, {from: stranger})
+        // test transfer happened
+        const endingStrangerLinkWallet = await link.balanceOf(stranger)
+        const endingDeposit = await st.balanceOfLink(stranger)
+        assert.equal(0, endingDeposit);
+        assert.equal(oneEth, endingStrangerLinkWallet)
+        assert.equal(strangerDeposit, endingStrangerLinkWallet - startStrangerLinkWallet);
+      })
+      it('reverts when more is requested than the sender has available', async() => {
+        await expectRevert.unspecified(
+          st.withdrawLink(stranger, strangerDeposit+oneEth, {
+            from: stranger
+          })
+        )
+      })
+    })
+  })
+
   describe('#startTrade', () => {
     beforeEach(async () => {
       const tx = await st.buyItem(tradeId, testBuyer.steamId, {
-        from: stranger, value: payment
+        from: testBuyer.addr, value: oneEth
       })
       // fail if trade not set up for tests
       truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
         return ev.tradeId == tradeId;
       })
+      // give user & the user deposits 1 LINK into contract. assert balance is correct
+      assert(await link.transfer(stranger, oneEth), "LINK transfer to Stranger failed.")
+      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
     })
 
     context('withoutRefundLock', () => {
-      it('succeeds and sends buyer money minus the fee.', async() => {
-
+      it('succeeds and locks the sale.', async() => {
+        const tx = await st.startTrade(tradeId, {from: testSeller.addr})
+        truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
+          return ev.tradeId == tradeId;
+        })
       })
     })
 
     context('withRefundLock', () => {
       it('reverts', async() => {
+        const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
+        truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
+          return ev.tradeId == tradeId;
+        })
+        await expectRevert.unspecified(
+          st.startTrade(tradeId, {from: testSeller.addr})
+        )
+      })
+    })
 
+    context('started by non-seller', () => {
+      it('reverts', async() => {
+        await expectRevert.unspecified(
+          st.startTrade(tradeId, {from: testBuyer.addr})
+        )
       })
     })
   })
 
   describe('#requestRefund', () => {
+    beforeEach(async () => {
+      const tx = await st.buyItem(tradeId, testBuyer.steamId, {
+        from: testBuyer.addr, value: oneEth
+      })
+      // fail if trade not set up for tests
+      truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
+        return ev.tradeId == tradeId;
+      })
+      // give user & the user deposits 1 LINK into contract. assert balance is correct
+      assert(await link.transfer(stranger, oneEth), "LINK transfer to Stranger failed.")
+      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+    })
+
     context('withoutSaleLocked', () => {
-      it('succeeds and sends buyer money minus the fee.', async() => {
-
-      })
-    })
-  })
-/*
-  describe('#fulfill', () => {
-    const expected = 50000
-    const response = web3.utils.toHex(expected)
-    let request
-
-    beforeEach(async () => {
-      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
-      const tx = await st.createRequestTo(
-        oc.address,
-        jobId,
-        payment,
-        testTrade,
-        false,
-        { from: consumer },
-      )
-      request = h.decodeRunRequest(tx.receipt.rawLogs[3])
-      await h.fulfillOracleRequest(oc, request, response, { from: oracleNode })
-    })
-
-    it('records the data given to it by the oracle', async () => {
-      const currentPrice = await st.data.call()
-      assert.equal(
-        web3.utils.toHex(currentPrice),
-        web3.utils.padRight(expected, 64),
-      )
-    })
-
-    context('when my contract does not recognize the request ID', () => {
-      const otherId = web3.utils.toHex('otherId')
-
-      beforeEach(async () => {
-        request.id = otherId
-      })
-
-      it('does not astept the data provided', async () => {
-        await expectRevert.unspecified(
-          h.fulfillOracleRequest(oc, request, response, {
-            from: oracleNode,
-          }),
-        )
-      })
-    })
-
-    context('when called by anyone other than the oracle contract', () => {
-      it('does not astept the data provided', async () => {
-        await expectRevert.unspecified(
-          st.fulfill(request.id, response, { from: stranger }),
-        )
-      })
-    })
-  })
-
-  describe('#cancelRequest', () => {
-    let request
-
-    beforeEach(async () => {
-      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
-      const tx = await st.createRequestTo(
-        oc.address,
-        jobId,
-        payment,
-        testTrade,
-        false,
-        { from: consumer },
-      )
-      request = h.decodeRunRequest(tx.receipt.rawLogs[3])
-    })
-
-    context('before the expiration time', () => {
-      it('cannot cancel a request', async () => {
-        await expectRevert(
-          st.cancelRequest(
-            request.id,
-            request.payment,
-            request.callbackFunc,
-            request.expiration,
-            { from: consumer },
-          ),
-          'Request is not expired',
-        )
-      })
-    })
-
-    context('after the expiration time', () => {
-      beforeEach(async () => {
-        await time.increase(300)
-      })
-
-      context('when called by a non-owner', () => {
-        it('cannot cancel a request', async () => {
-          await expectRevert.unspecified(
-            st.cancelRequest(
-              request.id,
-              request.payment,
-              request.callbackFunc,
-              request.expiration,
-              { from: stranger },
-            ),
-          )
-        })
-      })
-
-      context('when called by an owner', () => {
-        it('can cancel a request', async () => {
-          await st.cancelRequest(
-            request.id,
-            request.payment,
-            request.callbackFunc,
-            request.expiration,
-            { from: consumer },
-          )
+      it('succeeds and locks the refund.', async() => {
+        const tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
+        truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
+          return ev.tradeId == tradeId;
         })
       })
     })
-  })
-
-  describe('#withdrawLink', () => {
-    beforeEach(async () => {
-      await link.transfer(st.address, web3.utils.toWei('1', 'ether'))
-    })
-
-    context('when called by a non-owner', () => {
-      it('cannot withdraw', async () => {
-        await expectRevert.unspecified(st.withdrawLink({ from: stranger }))
+    context('withSaleLockedIn', () => {
+      beforeEach(async() => {
+        const tx = await st.startTrade(tradeId, {from: testSeller.addr})
+        truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
+          return ev.tradeId == tradeId;
+        })
+      })
+      it('reverts', async() => {
+        await expectRevert.unspecified(
+          st.requestEthRefund(tradeId, {from: testBuyer.addr})
+        )
       })
     })
-
-    context('when called by the owner', () => {
-      it('transfers LINK to the owner', async () => {
-        const beforeBalance = await link.balanceOf(consumer)
-        assert.equal(beforeBalance, '0')
-        await st.withdrawLink({ from: consumer })
-        const afterBalance = await link.balanceOf(consumer)
-        assert.equal(afterBalance, web3.utils.toWei('1', 'ether'))
+    context('not from buyer', () => {
+      it('reverts', async() => {
+        await expectRevert.unspecified(
+          st.requestEthRefund(tradeId, {from: testSeller.addr})
+        )
       })
     })
   })
-  */
 })
