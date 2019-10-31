@@ -34,10 +34,11 @@ If needed, edit the `truffle-config.js` config file to set the desired network t
 npm run migrate:dev
 ```
 
-For deploying to live networks, Truffle will use `truffle-hdwallet-provider` for your mnemonic and an RPC URL. Set your environment variables `$RPC_URL` and `$MNEMONIC` before running:
+For deploying to live networks, Truffle will use `truffle-hdwallet-provider` for your mnemonic and an RPC URL. Set these in the `.s/` folder (hidden and ignored from github; look in `truffle-config.js` to see what it looks for) or implement your own network setup in `truffle-config.js` file.
 
 ```bash
-npm run migrate:live
+npm run migrate:ropsten
+npm run migrate:mainnet
 ```
 
 ## Helper Scripts
@@ -51,7 +52,7 @@ There are 3 helper scripts provided with this box in the scripts directory:
 They can be used by calling them from `npx truffle exec`, for example:
 
 ```bash
-npx truffle exec scripts/fund-contract.js --network live
+npx truffle exec scripts/fund-contract.js --network ropsten
 ```
 
 The CLI will output something similar to the following:
@@ -91,7 +92,7 @@ npx truffle exec scripts/read-contract.js --network ropsten
 Once the oracle has responded, you will receive a value similar to the one below:
 
 ```
-Using network 'live'.
+Using network 'ropsten'.
 
 21568
 Truffle v5.0.25 (core: 5.0.25)
