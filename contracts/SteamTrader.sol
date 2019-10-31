@@ -66,8 +66,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
   event FundingSecured(bytes32 indexed tradeId);
   event SaleLocked(bytes32 indexed tradeId);
   event SaleCompleted(bytes32 indexed tradeId);
-  event SellerHasItem(bytes32 tradeId);
-  event BuyerHasItem(bytes32 tradeId);
+  event SellerHasItem(bytes32 indexed tradeId);
+  event BuyerHasItem(bytes32 indexed tradeId);
   event RefundRequested(bytes32 indexed tradeId);
   event RefundGranted(bytes32 indexed tradeId);
 
