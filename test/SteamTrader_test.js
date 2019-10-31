@@ -3,13 +3,14 @@ const h = require('chainlink').helpers
 const l = require('./helpers/linkToken')
 const truffleAssert = require('truffle-assertions');
 const uuidv4 = require('uuid/v4');
-const evmTrue = 0x0000000000000000000000000000000000000000000000000000000000000001
-const evmFalse = 0x0000000000000000000000000000000000000000000000000000000000000000
+const evmTrue = "0x0000000000000000000000000000000000000000000000000000000000000001"
+const evmFalse = "0x0000000000000000000000000000000000000000000000000000000000000000"
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { expectRevert, time } = require('openzeppelin-test-helpers')
+const { expectRevert, time, expectEvent } = require('openzeppelin-test-helpers')
 
 contract('SteamTrader', accounts => {
   const Oracle = artifacts.require('Oracle.sol')
+  const ChainlinkClient = artifacts.require('ChainlinkClient.sol')
   const SteamTrader = artifacts.require('SteamTrader.sol')
 
   const defaultAccount = accounts[0]
@@ -65,12 +66,13 @@ contract('SteamTrader', accounts => {
   // Represents 1 LINK for testnet requests
 
 
-  let link, oc, st, tradeId, nonExistantTradeId
+  let link, oc, st, cc, tradeId, nonExistantTradeId
 
   // setup contracts and create new trade for testing
   beforeEach(async () => {
     link = await l.linkContract(defaultAccount)
     oc = await Oracle.new(link.address, { from: oracleContractOwner })
+    cc = await ChainlinkClient.new({from: defaultAccount})
     st = await SteamTrader.new(link.address, { from: consumer })
 
     await oc.setFulfillmentPermission(consumer, true, {
@@ -300,10 +302,14 @@ contract('SteamTrader', accounts => {
         //console.log(tx.receipt.rawLogs)
         request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         const response = evmTrue
-        const txFufill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        console.log(txFufill)
-        truffleAssert.eventEmitted(txFufill, 'ChainlinkFulfilled')
-        truffleAssert.eventEmitted(txFufill, 'SellerHasItem', {tradeId: tradeId})
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        var tradeStatus = await st.tradeStatus.call(tradeId)
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('SellerHasItem(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
+
+        assert(tradeStatus.sellerHoldsItem)
       })
     })
 
@@ -354,14 +360,27 @@ contract('SteamTrader', accounts => {
           return true
         })
       })
-      it('Emits SellerHasItem(tradeId) when oracle returns true', async() => {
+      it('Emits BuyerHasItem(tradeId) when oracle returns true', async() => {
         //console.log(tx.receipt.rawLogs)
         request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         const response = evmTrue
-        const txFufill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
-        console.log(txFufill)
-        truffleAssert.eventEmitted(txFufill, 'ChainlinkFulfilled')
-        truffleAssert.eventEmitted(txFufill, 'SellerHasItem', {tradeId: tradeId})
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('BuyerHasItem(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
+      })
+      it('Emits BuyerHasItem(tradeId) when oracle returns true', async() => {
+        //console.log(tx.receipt.rawLogs)
+        request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        const response = evmTrue
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[0], web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[0].topics[1], reqId)
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[0], web3.utils.soliditySha3('BuyerHasItem(bytes32)'))
+        assert.equal(txFulfill.receipt.rawLogs[1].topics[1], tradeId)
       })
     })
 
@@ -384,9 +403,80 @@ contract('SteamTrader', accounts => {
           const tx = await st.requestEthRefund(tradeId, {from: stranger})
           truffleAssert.eventEmitted(tx, 'ChainlinkRequested')
         })
+        it('Allows buyer to request refund', async() => {
+          assert(await link.transfer(testBuyer.addr, oneEth), "LINK transfer to Buyer failed.")
+          assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: testBuyer.addr}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+
+          const tx = await st.requestEthRefund(tradeId, {from: stranger})
+          truffleAssert.eventEmitted(tx, 'RefundRequested')
+        })
+        it('Allows seller to request refund', async() => {
+          assert(await link.transfer(testSeller.addr, oneEth), "LINK transfer to Seller failed.")
+          assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: testSeller.addr}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+
+          const tx = await st.requestEthRefund(tradeId, {from: stranger})
+          truffleAssert.eventEmitted(tx, 'RefundRequested')
+        })
+        it('Doesnt allow non-participants to request refund', async() => {
+          assert(await link.transfer(strangerNotInTrade, oneEth), "LINK transfer to Stranger failed.")
+          assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: strangerNotInTrade}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+
+          await expectRevert.unspecified(
+            st.requestEthRefund(tradeId, {from: strangerNotInTrade})
+          )
+        })
       })
     })
-    //describe ('#fulfillSellerCheck')
+    describe ('#fulfillSellerCheck', () => {
+      let tx, reqId, i
+      beforeEach(async() => {
+        // lock in trade
+        tx = await st.requestEthRefund(tradeId, {from: testBuyer.addr})
+        truffleAssert.eventEmitted(tx, 'RefundRequested', (ev) => {
+          return ev.tradeId == tradeId;
+        })
+        truffleAssert.eventEmitted(tx, 'ChainlinkRequested', (ev) => {
+          reqId = ev.id
+          return true
+        })
+      })
+      it('Emits ChainlinkFulfilled(bytes32) when oracle fulfills', async() => {
+        request = h.decodeRunRequest(tx.receipt.rawLogs[4])
+        const response = evmTrue
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        var rawLogs = txFulfill.receipt.rawLogs
+        for(i = 0; i < rawLogs.length
+          && rawLogs[i].topics[0] != web3.utils.soliditySha3('ChainlinkFulfilled(bytes32)'); i++
+        ) {}
+        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+        assert.equal(txFulfill.receipt.rawLogs[i].topics[1], reqId)
+      })
+      it('Emits nested SellerHasItem(tradeId) when oracle returns true', async() => {
+        request = h.decodeRunRequest(tx.receipt.rawLogs[4])
+        const response = evmTrue
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        var tradeStatus = await st.tradeStatus.call(tradeId)
+        var rawLogs = txFulfill.receipt.rawLogs
+        for(i = 0; i < rawLogs.length
+          && rawLogs[i].topics[0] != web3.utils.soliditySha3('SellerHasItem(bytes32)'); i++
+        ) {}
+        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+        assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
 
+        assert(tradeStatus.sellerHoldsItem)
+      })
+      it('Emits nested RefundGranted(tradeId) when oracle returns true', async() => {
+        //console.log(tx.receipt.rawLogs)
+        request = h.decodeRunRequest(tx.receipt.rawLogs[4])
+        const response = evmTrue
+        const txFulfill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        var rawLogs = txFulfill.receipt.rawLogs
+        for(i = 0; i < rawLogs.length
+          && rawLogs[i].topics[0] != web3.utils.soliditySha3('RefundGranted(bytes32)'); i++
+        ) {}
+        assert.isBelow(i, rawLogs.length, "Event not found in RawLogs.")
+        assert.equal(rawLogs[i].topics[1], tradeId, "Mismatched tradeId")
+      })
+    })
   })
 })
