@@ -62,6 +62,16 @@ contract SteamTrader is ChainlinkClient, Ownable {
     uint256 askingPrice;
   }
 
+  event TradeCreated(bytes32 indexed tradeId);
+  event FundingSecured(bytes32 indexed tradeId);
+  event LinkReceived(address sender, uint amount, bytes data);
+  event SaleLocked(bytes32 indexed tradeId);
+  event SaleCompleted(bytes32 indexed tradeId);
+  event SellerHasItem(bytes32 indexed tradeId);
+  event BuyerHasItem(bytes32 indexed tradeId);
+  event RefundRequested(bytes32 indexed tradeId);
+  event RefundGranted(bytes32 indexed tradeId);
+
   function createTrade(
     bytes32 _uuid,
     string calldata _steamId,
@@ -73,7 +83,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     // app
     uint16 _appId,
     uint8 _inventoryContext
-  ) external returns (bytes32) {
+  ) external {
     // check if trade already exists. if so, halt.
     require (!tradeStatus[_uuid].init, "Trade already exists with this ID.");
 
@@ -90,8 +100,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     trade[_uuid].item.assetid = _assetid;
     trade[_uuid].item.classid = _classid;
     trade[_uuid].item.instanceid = _instanceid;
-
-    return _uuid;
+    emit TradeCreated(_uuid);
   }
 
   // seller runs so the contract displays he/she has the item
@@ -109,6 +118,9 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     bytes32 _tradeId = requestTracker[_requestId];
     tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
+    if (_itemFound) {
+      emit SellerHasItem(_tradeId);
+    }
   }
 
   // function for buyer to deposit funds
@@ -119,27 +131,29 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     Trade memory _t = trade[_tradeId];
     // require not bought yet and full amount paid (no more, no less)
-    require(_t.buyer.addr == address(0) && _t.askingPrice == msg.value);
+    require(_t.buyer.addr == address(0) && _t.askingPrice == msg.value, "Buyer already exists or payment didnt match");
     // update trade with buyer
     trade[_tradeId].buyer.addr = msg.sender;
     trade[_tradeId].buyer.steamId = _steamId;
     tradeStatus[_tradeId].depositBalance = msg.value;
+    emit FundingSecured(_tradeId);
     //TODO: emit event that funds have arrived. UI can read this and SNS notify the seller
   }
 
   // allow seller to declare he's sending item so a refund can't be issued.
-  function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) returns (uint) {
+  function startTrade(bytes32 _tradeId) external onlySeller(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Wait for lock to end.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
     tradeStatus[_tradeId].lockBlockTimestamp = now;
+    emit SaleLocked(_tradeId);
   }
 
   // seller tells contract he has sent item. If item is in buyer inventory, resolve trade.
   function confirmTrade(bytes32 _tradeId) external sellTransferIsInitiated(_tradeId) {
     require(!tradeStatus[_tradeId].refundInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= lockTime, "Refund locked in. Try after lock period ends.");
     tradeStatus[_tradeId].sellTransferInitiated = true;
     tradeStatus[_tradeId].refundInitiated = false;
 
@@ -155,10 +169,12 @@ contract SteamTrader is ChainlinkClient, Ownable {
   {
     require(
       !tradeStatus[_tradeId].sellTransferInitiated
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days, "Sale locked in. Try after lock period ends."
     );
     tradeStatus[_tradeId].refundInitiated = true;
     tradeStatus[_tradeId].sellTransferInitiated = false;
+    tradeStatus[_tradeId].lockBlockTimestamp = now;
+    emit RefundRequested(_tradeId);
     checkSteamInventory(_tradeId, false, this.fulfillSellerCheck.selector);
   }
 
@@ -188,7 +204,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     require(
       _selector == this.fulfillBuyerCheck.selector
       || _selector == this.fulfillSellerCheck.selector
-      || _selector == this.fulfillTradeItemValidation.selector
+      || _selector == this.fulfillTradeItemValidation.selector, "Wrong function specified as selector"
     );
     Trade memory _trade = trade[_tradeId];
     Item memory _item = _trade.item;
@@ -240,11 +256,17 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem = _itemFound && !_buyer;
       tradeStatus[_tradeId].buyerHoldsItem = _itemFound && _buyer;
       // if item is found in buyer inventory, send all deposited funds to seller and complete trade
-      if (_buyer && tradeStatus[_tradeId].depositBalance >= trade[_tradeId].askingPrice) {
-        resolvePayout(_tradeId);
+      if (_buyer) {
+        emit BuyerHasItem(_tradeId);
+        if (tradeStatus[_tradeId].depositBalance >= trade[_tradeId].askingPrice) {
+          resolvePayout(_tradeId);
+        }
       }
-      else if (!_buyer && tradeStatus[_tradeId].depositBalance >= 0 && tradeStatus[_tradeId].refundInitiated) {
-        refundBeforeTrade(_tradeId);
+      else if (!_buyer) {
+        emit SellerHasItem(_tradeId);
+        if (tradeStatus[_tradeId].depositBalance >= 0 && tradeStatus[_tradeId].refundInitiated) {
+          refundBeforeTrade(_tradeId);
+        }
       }
     }
     else { // update status as best as possible since item not found
@@ -276,6 +298,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
     // update reputation ticker with successful trade.
     reputation[trade[_tradeId].buyer.addr] += 1;
     reputation[trade[_tradeId].seller.addr] += 1;
+
+    emit SaleCompleted(_tradeId);
   }
 
   // called by oracle fulfillment via logic in @fulfillSellerCheck && @resolveTrade. ends trade
@@ -290,7 +314,8 @@ contract SteamTrader is ChainlinkClient, Ownable {
       tradeStatus[_tradeId].sellerHoldsItem
         && (tradeStatus[_tradeId].refundInitiated
         && !tradeStatus[_tradeId].sellTransferInitiated)
-      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days);
+      || now - tradeStatus[_tradeId].lockBlockTimestamp >= 1 days,
+      "Seller doesnt have item or sale locked in. Try after lock period ends.");
 
     TradeStatus memory _tStatus = tradeStatus[_tradeId];
     Trade memory _t = trade[_tradeId];
@@ -299,6 +324,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
     (_t.buyer.addr).transfer(_tStatus.depositBalance - _refundFee);
     withdrawableEth += _refundFee;
     tradeStatus[_tradeId].depositBalance = 0;
+    emit RefundGranted(_tradeId);
   }
 
   // return: (final payout, fee)
@@ -385,15 +411,9 @@ contract SteamTrader is ChainlinkClient, Ownable {
   )
     public
     onlyLINK
-    permittedFunctionsForLINKRequests
   {
-    assembly { // solhint-disable-line no-inline-assembly
-      mstore(add(_data, 36), _sender) // ensure correct sender is passed
-      mstore(add(_data, 68), _amount) // ensure correct amount is passed
-    }
-    // solhint-disable-next-line avoid-low-level-calls
-    (bool success,) = address(this).delegatecall(_data); // calls oracleRequest or depositFunds
-    require(success, "Unable to create request");
+    emit LinkReceived(_sender, _amount, _data);
+    depositLinkFunds(_sender, _amount);
   }
 
   /**
@@ -401,7 +421,7 @@ contract SteamTrader is ChainlinkClient, Ownable {
    * @param _sender Address of the sender
    * @param _amount Amount of LINK sent (specified in wei)
    */
-  function depositLinkFunds(address _sender, uint256 _amount) external onlyLINK
+  function depositLinkFunds(address _sender, uint256 _amount) private onlyLINK
   {
     withdrawableLinkTokens[_sender] = withdrawableLinkTokens[_sender].add(_amount);
   }
@@ -438,32 +458,11 @@ contract SteamTrader is ChainlinkClient, Ownable {
     _;
   }
 
-  /**
-   * @dev Reverts if the given data does not begin with the `oracleRequest` function selector
-   */
-  modifier permittedFunctionsForLINKRequests() {
-    bytes4 funcSelector;
-    assembly { // solhint-disable-line no-inline-assembly
-      calldatacopy(funcSelector, 132, 4) // grab function selector from calldata
-    }
-    // only requestEthRefund and requestEthPayment allowed
-    require(
-      funcSelector[0] == this.requestEthRefund.selector
-        || funcSelector[0] == this.confirmTrade.selector
-        || funcSelector[0] == this.depositLinkFunds.selector,
-      "Must use whitelisted functions");
-    _;
-  }
-
   modifier onlyLINK() {
     require(msg.sender == getChainlinkToken(), "Must use LINK token");
     _;
   }
 
-  /**
-   * @dev Reverts if amount requested is greater than withdrawable balance
-   * @param _amount The given amount to compare to `withdrawableTokens`
-   */
   modifier hasAvailableLINKFunds(uint256 _amount) {
     require(withdrawableLinkTokens[msg.sender] >= _amount, "Amount required for oracle payment is greater than withdrawable balance");
     _;
@@ -486,14 +485,6 @@ contract SteamTrader is ChainlinkClient, Ownable {
 
   modifier inProgressTradeOnly(bytes32 _tradeId) {
     require(tradeStatus[_tradeId].init && !tradeStatus[_tradeId].complete);
-    _;
-  }
-  /**
-   * @dev Reverts if the given payload is less than needed to create a request
-   * @param _data The request payload
-   */
-  modifier validRequestLength(bytes memory _data) {
-    require(_data.length >= MINIMUM_REQUEST_LENGTH, "Invalid request length");
     _;
   }
 }

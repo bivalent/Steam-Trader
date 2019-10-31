@@ -46,5 +46,6 @@ module.exports = async callback => {
     appid,
     context
   )
-  callback(tx.tx)
+
+
 }
