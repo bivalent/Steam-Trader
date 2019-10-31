@@ -15,6 +15,7 @@ contract('SteamTrader', accounts => {
   const oracleNode = accounts[1]
   const stranger = accounts[2]
   const consumer = accounts[3]
+  const strangerNotInTrade = accounts[4]
 
   // give stranger & the stranger deposits 1 LINK into contract.
   //depositEncoding = 0x1c343d46
@@ -174,13 +175,9 @@ contract('SteamTrader', accounts => {
       const tx = await st.buyItem(tradeId, testBuyer.steamId, {
         from: testBuyer.addr, value: oneEth
       })
-      // fail if trade not set up for tests
-      truffleAssert.eventEmitted(tx, 'FundingSecured', (ev) => {
-        return ev.tradeId == tradeId;
-      })
       // give user & the user deposits 1 LINK into contract. assert balance is correct
-      assert(await link.transfer(stranger, oneEth), "LINK transfer to Stranger failed.")
-      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: stranger}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+      assert(await link.transfer(testBuyer.addr, oneEth), "LINK transfer to Stranger failed.")
+      assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: testBuyer.addr}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
     })
 
     describe('#startTrade', () => {
@@ -227,7 +224,7 @@ contract('SteamTrader', accounts => {
         })
         it('reverts for trade not in progress', async() => {
           await expectRevert.unspecified(
-            st.startTrade(nonExistantTradeId, {from: testSeller.addr})
+            st.requestEthRefund(nonExistantTradeId, {from: testBuyer.addr})
           )
         })
         it('reverts when not from buyer', async() => {
@@ -251,16 +248,100 @@ contract('SteamTrader', accounts => {
       })
     })
 
-    describe ('#fulfillTradeItemValidation', () => {
+    describe('#checkSteamInventory', () => {
+      context('When it creates a chainlink request', () => {
+        it('Updates requestTracker correctly on success', async() => {
+          const tx = await st.requestTradeItemValidation(tradeId, {from: stranger})
+          let reqId, matchingTradeId
+          truffleAssert.eventEmitted(tx, 'ChainlinkRequested', (ev) => {
+            reqId = ev.id
+            return true
+          })
+          matchingTradeId = await st.requestTracker.call(reqId)
+          assert.equal(tradeId, matchingTradeId)
+        })
+      })
+    })
+
+    describe ('#requestTradeItemValidation', () => {
       context('when validation is requested', () => {
+        it('reverts for trade not in progress', async() => {
+          await expectRevert.unspecified(
+            st.requestTradeItemValidation(nonExistantTradeId, {from: testSeller.addr})
+          )
+        })
+        it('reverts if sender has not enough link (1) deposited', async() =>{
+          // our beforeEach sends link to stranger. confirm consumer has zero then run
+          var consumerLinkBalance = await link.balanceOf(consumer)
+          assert.equal(0, consumerLinkBalance)
+          await expectRevert.unspecified(
+            st.requestTradeItemValidation(tradeId, {from: consumer})
+          )
+        })
+        it('Creates chainlink request on successful call', async() => {
+          const tx = await st.requestTradeItemValidation(tradeId, {from: stranger})
+          truffleAssert.eventEmitted(tx, 'ChainlinkRequested')
+        })
+      })
+    })
+    //describe ('#fulfillTradeItemValidation')
+
+    describe('#requestTradeConfirmation', () => {
+      before(async() => {
+        assert(await link.transfer(testSeller.addr, oneEth), "LINK transfer to Stranger failed.")
+        assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: testSeller.addr}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
+
+      })
+      context('when trade confirmation is requested', () => {
+        it('reverts for trade not in progress', async() => {
+          await expectRevert.unspecified(
+            st.requestTradeConfirmation(nonExistantTradeId, {from: testSeller.addr})
+          )
+        })
+        it('reverts if sender has not enough link (1) deposited', async() =>{
+          // our beforeEach sends link to stranger. confirm consumer has zero then run
+          var consumerLinkBalance = await link.balanceOf(strangerNotInTrade)
+          assert.equal(0, consumerLinkBalance)
+          await expectRevert.unspecified(
+            st.requestTradeConfirmation(tradeId, {from: strangerNotInTrade})
+          )
+        })
+        it('reverts if trade wasnt locked in/confirmed via startTrade', async() => {
+          await expectRevert.unspecified(
+            st.requestTradeConfirmation(tradeId, {from: testSeller.addr})
+          )
+        })
+        it('Creates a chainlink request on successful call', async() => {
+          await st.startTrade(tradeId, {from: testSeller.addr})
+          const tx = await st.requestTradeConfirmation(tradeId, {from: testSeller.addr})
+          truffleAssert.eventEmitted(tx, 'ChainlinkRequested')
+        })
+      })
+    })
+    //describe ('#fulfillBuyerCheck')
+
+    describe('#requestEthRefund', () => {
+      context('when refund fulfillment is requested', () => {
         it('reverts for trade not in progress', async() => {
           await expectRevert.unspecified(
             st.requestEthRefund(nonExistantTradeId, {from: testSeller.addr})
           )
         })
+        it('reverts if sender has not enough link (1) deposited', async() =>{
+          // our beforeEach sends link to stranger. confirm consumer has zero then run
+          var consumerLinkBalance = await link.balanceOf(consumer)
+          assert.equal(0, consumerLinkBalance)
+          await expectRevert.unspecified(
+            st.requestEthRefund(tradeId, {from: consumer})
+          )
+        })
+        it('Creates chainlink request on successful call', async() => {
+          const tx = await st.requestEthRefund(tradeId, {from: stranger})
+          truffleAssert.eventEmitted(tx, 'ChainlinkRequested')
+        })
       })
     })
-    //describe('#fufillTradeConfirmation')
-    //describe('#fufillRefundRequest')
+    //describe ('#fulfillSellerCheck')
+
   })
 })
