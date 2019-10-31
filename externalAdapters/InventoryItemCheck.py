@@ -5,6 +5,7 @@ import time
 
 def cl_steam_inventory_handler(event, context):
     resp = False
+    print(event)
     requestBody = dict()
     if ("body" in event):
         requestBody = event["body"]
@@ -41,19 +42,22 @@ def cl_steam_inventory_handler(event, context):
         },
         "body": json.dumps(respBodyJson)
     }
-
+    print(responsePayload)
     return responsePayload
 
 
 def steam_inventory_adapter(request):
     job_id = request['id']
     data = request['data']
+
     user_id = data['user_id']
     appid = data['appid']
     context = data['context']
-    assetid = data['assetid']
-    classid = data['classid']
-    instanceid = data['instanceid']
+    item = data['item']
+
+    assetid = item['assetid']
+    classid = item['classid']
+    instanceid = item['instanceid']
 
     steam_inventory_url = "http://steamcommunity.com/inventory/{0}/{1}/{2}?count=5000".format(user_id, appid, context)
     item_found_resp = is_item_in_inventory(steam_inventory_url, assetid, classid, instanceid)
@@ -74,6 +78,7 @@ def is_item_in_inventory(url, assetid, classid, instanceid):
     rateLimitedCount = 0
     # paginate
     while more_items == 1 and not item_found:
+        print(full_url)
         response = requests.get(full_url)
         r_steaminventory = response.json()
 
@@ -118,7 +123,8 @@ def is_item_in_inventory(url, assetid, classid, instanceid):
                     "error_code": 429
                 }
         else:
-           return {
+            print(f"Steam call failed with HttpErrorCode: {response.status_code} and message: {response.json()}")
+            return {
                     "item_found": item_found,
                     "status": "errored",
                     "error": f"Call failed with httpCode: {response.status_code}",
