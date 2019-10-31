@@ -3,7 +3,8 @@ const h = require('chainlink').helpers
 const l = require('./helpers/linkToken')
 const truffleAssert = require('truffle-assertions');
 const uuidv4 = require('uuid/v4');
-
+const evmTrue = 0x0000000000000000000000000000000000000000000000000000000000000001
+const evmFalse = 0x0000000000000000000000000000000000000000000000000000000000000000
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { expectRevert, time } = require('openzeppelin-test-helpers')
 
@@ -12,7 +13,7 @@ contract('SteamTrader', accounts => {
   const SteamTrader = artifacts.require('SteamTrader.sol')
 
   const defaultAccount = accounts[0]
-  const oracleNode = accounts[1]
+  const oracleContractOwner = accounts[1]
   const stranger = accounts[2]
   const consumer = accounts[3]
   const strangerNotInTrade = accounts[4]
@@ -69,12 +70,12 @@ contract('SteamTrader', accounts => {
   // setup contracts and create new trade for testing
   beforeEach(async () => {
     link = await l.linkContract(defaultAccount)
-    oc = await Oracle.new(link.address, { from: defaultAccount })
+    oc = await Oracle.new(link.address, { from: oracleContractOwner })
     st = await SteamTrader.new(link.address, { from: consumer })
-    await oc.setFulfillmentPermission(oracleNode, true, {
-      from: defaultAccount,
+
+    await oc.setFulfillmentPermission(consumer, true, {
+      from: oracleContractOwner
     })
-    await st.setOracleAddress(oc.address, jobId, {from: consumer})
     tradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
     nonExistantTradeId = web3.utils.toHex(uuidv4().replace(/-/g, ''))
     var tx = await st.createTrade(
@@ -172,6 +173,7 @@ contract('SteamTrader', accounts => {
 
   context('after the item payment is made and link deposited by buyer', () => {
     beforeEach(async() => {
+      await st.setOracleAddress(oc.address, jobId, {from: consumer})
       const tx = await st.buyItem(tradeId, testBuyer.steamId, {
         from: testBuyer.addr, value: oneEth
       })
@@ -284,13 +286,31 @@ contract('SteamTrader', accounts => {
         })
       })
     })
-    //describe ('#fulfillTradeItemValidation')
+    describe ('#fulfillTradeItemValidation', () => {
+      let tx, reqId
+      beforeEach(async() => {
+        // make oracle request
+        tx = await st.requestTradeItemValidation(tradeId, {from: testBuyer.addr})
+        truffleAssert.eventEmitted(tx, 'ChainlinkRequested', (ev) => {
+          reqId = ev.id
+          return true
+        })
+      })
+      it('Emits SellerHasItem(tradeId) when oracle returns true', async() => {
+        //console.log(tx.receipt.rawLogs)
+        request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        const response = evmTrue
+        const txFufill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        console.log(txFufill)
+        truffleAssert.eventEmitted(txFufill, 'ChainlinkFulfilled')
+        truffleAssert.eventEmitted(txFufill, 'SellerHasItem', {tradeId: tradeId})
+      })
+    })
 
     describe('#requestTradeConfirmation', () => {
       before(async() => {
         assert(await link.transfer(testSeller.addr, oneEth), "LINK transfer to Stranger failed.")
         assert(await link.transferAndCall(st.address, oneEth, depositSelector, {from: testSeller.addr}), "TransferAndCall(st, 1ETh, depositLinkFunds) failed.")
-
       })
       context('when trade confirmation is requested', () => {
         it('reverts for trade not in progress', async() => {
@@ -318,7 +338,32 @@ contract('SteamTrader', accounts => {
         })
       })
     })
-    //describe ('#fulfillBuyerCheck')
+    describe ('#fulfillBuyerCheck', () => {
+      let tx, reqId
+      beforeEach(async() => {
+        // lock in trade
+        tx = await st.startTrade(tradeId, {from: testSeller.addr})
+        truffleAssert.eventEmitted(tx, 'SaleLocked', (ev) => {
+          return ev.tradeId == tradeId;
+        })
+
+        // make oracle request
+        tx = await st.requestTradeConfirmation(tradeId, {from: testSeller.addr})
+        truffleAssert.eventEmitted(tx, 'ChainlinkRequested', (ev) => {
+          reqId = ev.id
+          return true
+        })
+      })
+      it('Emits SellerHasItem(tradeId) when oracle returns true', async() => {
+        //console.log(tx.receipt.rawLogs)
+        request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        const response = evmTrue
+        const txFufill = await h.fulfillOracleRequest(oc, request, response, { from: oracleContractOwner })
+        console.log(txFufill)
+        truffleAssert.eventEmitted(txFufill, 'ChainlinkFulfilled')
+        truffleAssert.eventEmitted(txFufill, 'SellerHasItem', {tradeId: tradeId})
+      })
+    })
 
     describe('#requestEthRefund', () => {
       context('when refund fulfillment is requested', () => {
