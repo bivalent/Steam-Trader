@@ -111,18 +111,6 @@ contract SteamTrader is ChainlinkClient, Ownable {
     checkSteamInventory(_tradeId, false, this.fulfillTradeItemValidation.selector);
   }
 
-  // chainlink fulfills to this that the item is found
-  function fulfillTradeItemValidation(bytes32 _requestId, bool _itemFound)
-    external
-    recordChainlinkFulfillment(_requestId)
-  {
-    bytes32 _tradeId = requestTracker[_requestId];
-    tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
-    if (_itemFound) {
-      emit SellerHasItem(_tradeId);
-    }
-  }
-
   // function for buyer to deposit funds
   function buyItem(bytes32 _tradeId, string calldata _steamId)
     external
@@ -227,6 +215,19 @@ contract SteamTrader is ChainlinkClient, Ownable {
     requestId = sendChainlinkRequest(req, oraclePayment);
     requestTracker[requestId] = _trade.tradeId;
   }
+
+  // chainlink fulfills to this that the item is found
+  function fulfillTradeItemValidation(bytes32 _requestId, bool _itemFound)
+    external
+    recordChainlinkFulfillment(_requestId)
+  {
+    bytes32 _tradeId = requestTracker[_requestId];
+    tradeStatus[_tradeId].sellerHoldsItem = _itemFound;
+    if (_itemFound) {
+      emit SellerHasItem(_tradeId);
+    }
+  }
+
 
   /**
    * @notice The fulfill method from requests created by this contract
