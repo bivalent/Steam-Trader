@@ -1,5 +1,5 @@
 const getTableData = (req, res, db) => {
-  db.select('*').from('testtable1')
+  db.select('*').from('steamtrader.trades')
     .then(items => {
       if(items.length){
         res.json(items)
@@ -11,9 +11,9 @@ const getTableData = (req, res, db) => {
 }
 
 const postTableData = (req, res, db) => {
-  const { first, last, email, phone, location, hobby } = req.body
+  const { trade_id, steam_id, app_id } = req.body
   const added = new Date()
-  db('testtable1').insert({first, last, email, phone, location, hobby, added})
+  db('steamtrader.trades').insert({trade_id, steam_id, app_id, added})
     .returning('*')
     .then(item => {
       res.json(item)
@@ -22,8 +22,8 @@ const postTableData = (req, res, db) => {
 }
 
 const putTableData = (req, res, db) => {
-  const { id, first, last, email, phone, location, hobby } = req.body
-  db('testtable1').where({id}).update({first, last, email, phone, location, hobby})
+  const { trade_id, buyer_steam_id } = req.body
+  db('steamtrader.trades').where({id}).update({ trade_id, buyer_steam_id })
     .returning('*')
     .then(item => {
       res.json(item)
@@ -32,8 +32,8 @@ const putTableData = (req, res, db) => {
 }
 
 const deleteTableData = (req, res, db) => {
-  const { id } = req.body
-  db('testtable1').where({id}).del()
+  const { trade_id } = req.body
+  db('steamtrader.trades').where({id}).del()
     .then(() => {
       res.json({delete: 'true'})
     })
