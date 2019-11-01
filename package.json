@@ -4,23 +4,23 @@
   "description": "A Chainlink example in a Truffle box",
   "scripts": {
     "compile": "npx truffle compile",
-    "console:dev": "npx truffle console --network cldev",
-    "console:live": "npx truffle console --network live",
+    "console:dev": "npx truffle console --network develop",
+    "console:ropsten": "npx truffle console --network ropsten",
+    "console:mainnet": "npx truffle console --network mainnet",
     "depcheck": "echo '@chainlink/box' && depcheck --ignore-dirs=build/contracts || true",
     "eslint": "eslint --ext .js,.ts test scripts",
     "solhint": "solhint ./contracts/**/*.sol",
     "lint": "yarn eslint && yarn solhint",
     "format": "prettier --write \"**/*\"",
-    "migrate:dev": "npx truffle migrate --reset --network dev",
-    "migrate:live": "npx truffle migrate --network live",
-    "setup": "echo \"No setup required for @chainlink/box\"",
-    "test": "npx truffle test --migrations_directory migrations_null"
+    "migrate:dev": "npx truffle migrate --reset --network develop",
+    "migrate:ropsten": "npx truffle migrate --network ropsten",
+    "migrate:mainnet": "npx truffle migrate --network mainnet",
+    "test": "npx truffle test"
   },
   "license": "MIT",
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.22",
     "chainlink": "0.6.6-beta4",
-    "drizzle": "^1.4.0",
     "link_token": "^1.0.6",
     "openzeppelin-solidity": "^1.12.0",
     "typescript": "^3.6.4"
