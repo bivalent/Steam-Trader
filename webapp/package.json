@@ -1,0 +1,26 @@
+{
+  "name": "SteamTraderWebApp",
+  "version": "1.0.0",
+  "description": "A Webapp to interact with the SteamTrader App developed for the chainlink hackathon.",
+  "main": "server.js",
+  "repository": "https://github.com/brent-riva/Steam-Trader",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "Brent Riva",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^3.21.2",
+    "knex": "^0.20.1",
+    "morgan": "^1.9.1",
+    "pg": "^7.12.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.4"
+  }
+}
