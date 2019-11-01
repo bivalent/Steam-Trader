@@ -12016,8 +12016,9 @@
     "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.0.16",
-  "updatedAt": "2019-11-01T00:34:22.856Z",
+  "schemaVersion": "3.0.17",
+  "updatedAt": "2019-11-01T02:24:19.874Z",
+  "networkType": "ethereum",
   "devdoc": {
     "methods": {
       "cancelOracleRequest(bytes32,uint256,bytes4,uint256)": {

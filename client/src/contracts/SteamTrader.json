@@ -36724,9 +36724,202 @@
     "name": "solc",
     "version": "0.5.0+commit.1d4f565a.Emscripten.clang"
   },
-  "networks": {},
-  "schemaVersion": "3.0.16",
-  "updatedAt": "2019-11-01T00:34:22.842Z",
+  "networks": {
+    "3": {
+      "events": {
+        "0x72dbb4020c53749dc8545b23b311eeb1dff0b7c1104f9c22edf39a3c696ad838": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "TradeCreated",
+          "type": "event",
+          "signature": "0x72dbb4020c53749dc8545b23b311eeb1dff0b7c1104f9c22edf39a3c696ad838"
+        },
+        "0x80668746239215e381abf109af8d54f56a18c004d53bc34bb80e0a4da478c6c1": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "FundingSecured",
+          "type": "event",
+          "signature": "0x80668746239215e381abf109af8d54f56a18c004d53bc34bb80e0a4da478c6c1"
+        },
+        "0x9ee0420f7d71566f105213c2226110f6c0ea1db21ab256f42439e81b20902bc3": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "sender",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "name": "LinkReceived",
+          "type": "event",
+          "signature": "0x9ee0420f7d71566f105213c2226110f6c0ea1db21ab256f42439e81b20902bc3"
+        },
+        "0x2d3d39d20a7bf3710074bc037dc1148f17840c276f02aef853fb94973fea3f5c": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "SaleLocked",
+          "type": "event",
+          "signature": "0x2d3d39d20a7bf3710074bc037dc1148f17840c276f02aef853fb94973fea3f5c"
+        },
+        "0xf0910a3c2252167bb7f922a26847b089b35dac2db0e61737af690f259c4ed15f": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "SaleCompleted",
+          "type": "event",
+          "signature": "0xf0910a3c2252167bb7f922a26847b089b35dac2db0e61737af690f259c4ed15f"
+        },
+        "0x435c29fe1c8703271ec01d16f06e0ba8ebc0f6d9ee73f8eced34a861f664564f": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "SellerHasItem",
+          "type": "event",
+          "signature": "0x435c29fe1c8703271ec01d16f06e0ba8ebc0f6d9ee73f8eced34a861f664564f"
+        },
+        "0x0bb9a31f467665782e2053cf82e308ec4d7c22d5b50965cae27f938b8a3e7036": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "BuyerHasItem",
+          "type": "event",
+          "signature": "0x0bb9a31f467665782e2053cf82e308ec4d7c22d5b50965cae27f938b8a3e7036"
+        },
+        "0xc6bd23896495231c0b35505cd56d6ce75442a8757312378285344a2409ff977a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "RefundRequested",
+          "type": "event",
+          "signature": "0xc6bd23896495231c0b35505cd56d6ce75442a8757312378285344a2409ff977a"
+        },
+        "0xa6857d37d35d6508f22626b218c2a9f6c7a5d84e2e22b1e5240ff559fca094bd": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "tradeId",
+              "type": "bytes32"
+            }
+          ],
+          "name": "RefundGranted",
+          "type": "event",
+          "signature": "0xa6857d37d35d6508f22626b218c2a9f6c7a5d84e2e22b1e5240ff559fca094bd"
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event",
+          "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
+        },
+        "0xb5e6e01e79f91267dc17b4e6314d5d4d03593d2ceee0fbb452b750bd70ea5af9": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "id",
+              "type": "bytes32"
+            }
+          ],
+          "name": "ChainlinkRequested",
+          "type": "event",
+          "signature": "0xb5e6e01e79f91267dc17b4e6314d5d4d03593d2ceee0fbb452b750bd70ea5af9"
+        },
+        "0x7cc135e0cebb02c3480ae5d74d377283180a2601f8f644edf7987b009316c63a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "id",
+              "type": "bytes32"
+            }
+          ],
+          "name": "ChainlinkFulfilled",
+          "type": "event",
+          "signature": "0x7cc135e0cebb02c3480ae5d74d377283180a2601f8f644edf7987b009316c63a"
+        },
+        "0xe1fe3afa0f7f761ff0a8b89086790efd5140d2907ebd5b7ff6bfcb5e075fd4c5": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "id",
+              "type": "bytes32"
+            }
+          ],
+          "name": "ChainlinkCancelled",
+          "type": "event",
+          "signature": "0xe1fe3afa0f7f761ff0a8b89086790efd5140d2907ebd5b7ff6bfcb5e075fd4c5"
+        }
+      },
+      "links": {},
+      "address": "0x750E1673166C86041258ef616eaF4a648cD4B2A8",
+      "transactionHash": "0xb12a6e188bfd4fb3b129878c1d8352b9029adbc7c80e8783db35b3bd2d441fbd"
+    }
+  },
+  "schemaVersion": "3.0.17",
+  "updatedAt": "2019-11-01T02:24:19.849Z",
+  "networkType": "ethereum",
   "devdoc": {
     "details": "This contract is designed to work on multiple networks, including local test networks",
     "methods": {
