@@ -1,3 +1,4 @@
+const path = require("path")
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const fs = require('fs')
 let secrets
@@ -6,6 +7,7 @@ if (fs.existsSync('.secret')) {
   secrets = JSON.parse(fs.readFileSync('.secret', 'utf8'))
 }
 module.exports = {
+  contracts_build_directory: path.join(__dirname, "client/src/contracts"),
   networks: {
     dev: {
       host: '127.0.0.1',
