@@ -251,21 +251,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/interfaces/LinkTokenInterface.sol",
     "exportedSymbols": {
-      "LinkTokenInterface": [
-        2880
-      ]
+      "LinkTokenInterface": [2880]
     },
     "id": 2881,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2787,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:8"
       },
@@ -276,9 +269,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2880,
-        "linearizedBaseContracts": [
-          2880
-        ],
+        "linearizedBaseContracts": [2880],
         "name": "LinkTokenInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -1373,21 +1364,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/interfaces/LinkTokenInterface.sol",
     "exportedSymbols": {
-      "LinkTokenInterface": [
-        2880
-      ]
+      "LinkTokenInterface": [2880]
     },
     "id": 2881,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2787,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:8"
       },
@@ -1398,9 +1382,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2880,
-        "linearizedBaseContracts": [
-          2880
-        ],
+        "linearizedBaseContracts": [2880],
         "name": "LinkTokenInterface",
         "nodeType": "ContractDefinition",
         "nodes": [

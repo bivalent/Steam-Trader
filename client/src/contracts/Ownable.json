@@ -77,21 +77,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/vendor/Ownable.sol",
     "exportedSymbols": {
-      "Ownable": [
-        3810
-      ]
+      "Ownable": [3810]
     },
     "id": 3811,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 3720,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:14"
       },
@@ -102,9 +95,7 @@
         "documentation": "@dev Contract module which provides a basic access control mechanism, where\nthere is an account (an owner) that can be granted exclusive access to\nspecific functions.\n * This module is used through inheritance. It will make available the modifier\n`onlyOwner`, which can be aplied to your functions to restrict their use to\nthe owner.\n * This contract has been modified to remove the revokeOwnership function",
         "fullyImplemented": true,
         "id": 3810,
-        "linearizedBaseContracts": [
-          3810
-        ],
+        "linearizedBaseContracts": [3810],
         "name": "Ownable",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -568,10 +559,7 @@
                       "id": 3754,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1039:7:14",
                       "typeDescriptions": {
@@ -1010,10 +998,7 @@
                       "id": 3790,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1658:7:14",
                       "typeDescriptions": {
@@ -1221,21 +1206,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/vendor/Ownable.sol",
     "exportedSymbols": {
-      "Ownable": [
-        3810
-      ]
+      "Ownable": [3810]
     },
     "id": 3811,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 3720,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:14"
       },
@@ -1246,9 +1224,7 @@
         "documentation": "@dev Contract module which provides a basic access control mechanism, where\nthere is an account (an owner) that can be granted exclusive access to\nspecific functions.\n * This module is used through inheritance. It will make available the modifier\n`onlyOwner`, which can be aplied to your functions to restrict their use to\nthe owner.\n * This contract has been modified to remove the revokeOwnership function",
         "fullyImplemented": true,
         "id": 3810,
-        "linearizedBaseContracts": [
-          3810
-        ],
+        "linearizedBaseContracts": [3810],
         "name": "Ownable",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -1712,10 +1688,7 @@
                       "id": 3754,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1039:7:14",
                       "typeDescriptions": {
@@ -2154,10 +2127,7 @@
                       "id": 3790,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1658:7:14",
                       "typeDescriptions": {

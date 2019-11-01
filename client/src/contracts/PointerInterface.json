@@ -26,21 +26,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/interfaces/PointerInterface.sol",
     "exportedSymbols": {
-      "PointerInterface": [
-        2934
-      ]
+      "PointerInterface": [2934]
     },
     "id": 2935,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2928,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:10"
       },
@@ -51,9 +44,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2934,
-        "linearizedBaseContracts": [
-          2934
-        ],
+        "linearizedBaseContracts": [2934],
         "name": "PointerInterface",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -122,21 +113,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/interfaces/PointerInterface.sol",
     "exportedSymbols": {
-      "PointerInterface": [
-        2934
-      ]
+      "PointerInterface": [2934]
     },
     "id": 2935,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2928,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:10"
       },
@@ -147,9 +131,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2934,
-        "linearizedBaseContracts": [
-          2934
-        ],
+        "linearizedBaseContracts": [2934],
         "name": "PointerInterface",
         "nodeType": "ContractDefinition",
         "nodes": [

@@ -48,21 +48,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/ChainlinkClient.sol",
     "exportedSymbols": {
-      "ChainlinkClient": [
-        2570
-      ]
+      "ChainlinkClient": [2570]
     },
     "id": 2571,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2130,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:4"
       },
@@ -160,9 +153,7 @@
         "documentation": "@title The ChainlinkClient contract\n@notice Contract writers can inherit this contract in order to create requests for the\nChainlink network",
         "fullyImplemented": true,
         "id": 2570,
-        "linearizedBaseContracts": [
-          2570
-        ],
+        "linearizedBaseContracts": [2570],
         "name": "ChainlinkClient",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -1004,9 +995,7 @@
               "src": "2021:121:4",
               "statements": [
                 {
-                  "assignments": [
-                    2215
-                  ],
+                  "assignments": [2215],
                   "declarations": [
                     {
                       "constant": false,
@@ -2076,10 +2065,7 @@
                       "id": 2282,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "3470:7:4",
                       "typeDescriptions": {
@@ -2318,9 +2304,7 @@
               "src": "4297:269:4",
               "statements": [
                 {
-                  "assignments": [
-                    2313
-                  ],
+                  "assignments": [2313],
                   "declarations": [
                     {
                       "constant": false,
@@ -3806,9 +3790,7 @@
                   "src": "6521:15:4"
                 },
                 {
-                  "assignments": [
-                    2430
-                  ],
+                  "assignments": [2430],
                   "declarations": [
                     {
                       "constant": false,
@@ -3960,9 +3942,7 @@
                   "src": "6542:77:4"
                 },
                 {
-                  "assignments": [
-                    2440
-                  ],
+                  "assignments": [2440],
                   "declarations": [
                     {
                       "constant": false,
@@ -4327,9 +4307,7 @@
               "src": "7047:234:4",
               "statements": [
                 {
-                  "assignments": [
-                    2463
-                  ],
+                  "assignments": [2463],
                   "declarations": [
                     {
                       "constant": false,
@@ -4481,9 +4459,7 @@
                   "src": "7053:80:4"
                 },
                 {
-                  "assignments": [
-                    2473
-                  ],
+                  "assignments": [2473],
                   "declarations": [
                     {
                       "constant": false,
@@ -5400,10 +5376,7 @@
                       "id": 2531,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "8790:7:4",
                       "typeDescriptions": {
@@ -5749,10 +5722,7 @@
                       "id": 2556,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "9164:7:4",
                       "typeDescriptions": {
@@ -5835,21 +5805,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/ChainlinkClient.sol",
     "exportedSymbols": {
-      "ChainlinkClient": [
-        2570
-      ]
+      "ChainlinkClient": [2570]
     },
     "id": 2571,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2130,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:4"
       },
@@ -5947,9 +5910,7 @@
         "documentation": "@title The ChainlinkClient contract\n@notice Contract writers can inherit this contract in order to create requests for the\nChainlink network",
         "fullyImplemented": true,
         "id": 2570,
-        "linearizedBaseContracts": [
-          2570
-        ],
+        "linearizedBaseContracts": [2570],
         "name": "ChainlinkClient",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -6791,9 +6752,7 @@
               "src": "2021:121:4",
               "statements": [
                 {
-                  "assignments": [
-                    2215
-                  ],
+                  "assignments": [2215],
                   "declarations": [
                     {
                       "constant": false,
@@ -7863,10 +7822,7 @@
                       "id": 2282,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "3470:7:4",
                       "typeDescriptions": {
@@ -8105,9 +8061,7 @@
               "src": "4297:269:4",
               "statements": [
                 {
-                  "assignments": [
-                    2313
-                  ],
+                  "assignments": [2313],
                   "declarations": [
                     {
                       "constant": false,
@@ -9593,9 +9547,7 @@
                   "src": "6521:15:4"
                 },
                 {
-                  "assignments": [
-                    2430
-                  ],
+                  "assignments": [2430],
                   "declarations": [
                     {
                       "constant": false,
@@ -9747,9 +9699,7 @@
                   "src": "6542:77:4"
                 },
                 {
-                  "assignments": [
-                    2440
-                  ],
+                  "assignments": [2440],
                   "declarations": [
                     {
                       "constant": false,
@@ -10114,9 +10064,7 @@
               "src": "7047:234:4",
               "statements": [
                 {
-                  "assignments": [
-                    2463
-                  ],
+                  "assignments": [2463],
                   "declarations": [
                     {
                       "constant": false,
@@ -10268,9 +10216,7 @@
                   "src": "7053:80:4"
                 },
                 {
-                  "assignments": [
-                    2473
-                  ],
+                  "assignments": [2473],
                   "declarations": [
                     {
                       "constant": false,
@@ -11187,10 +11133,7 @@
                       "id": 2531,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "8790:7:4",
                       "typeDescriptions": {
@@ -11536,10 +11479,7 @@
                       "id": 2556,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "9164:7:4",
                       "typeDescriptions": {

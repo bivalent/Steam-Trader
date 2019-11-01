@@ -1,5 +1,7 @@
 let SteamTrader = artifacts.require('SteamTrader')
-let LinkToken = artifacts.require('chainlink/v0.5/contracts/interfaces/ChainlinkRequestInterface.sol')
+let LinkToken = artifacts.require(
+  'chainlink/v0.5/contracts/interfaces/ChainlinkRequestInterface.sol',
+)
 let Oracle = artifacts.require('Oracle')
 
 module.exports = (deployer, network) => {

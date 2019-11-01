@@ -48,21 +48,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/LinkTokenReceiver.sol",
     "exportedSymbols": {
-      "LinkTokenReceiver": [
-        2672
-      ]
+      "LinkTokenReceiver": [2672]
     },
     "id": 2673,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2572,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:5"
       },
@@ -73,9 +66,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2672,
-        "linearizedBaseContracts": [
-          2672
-        ],
+        "linearizedBaseContracts": [2672],
         "name": "LinkTokenReceiver",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -383,10 +374,7 @@
                   "src": "903:340:5"
                 },
                 {
-                  "assignments": [
-                    2608,
-                    null
-                  ],
+                  "assignments": [2608, null],
                   "declarations": [
                     {
                       "constant": false,
@@ -573,10 +561,7 @@
                       "id": 2616,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1323:7:5",
                       "typeDescriptions": {
@@ -971,10 +956,7 @@
                       "id": 2629,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1527:7:5",
                       "typeDescriptions": {
@@ -1027,9 +1009,7 @@
               "src": "1819:247:5",
               "statements": [
                 {
-                  "assignments": [
-                    2645
-                  ],
+                  "assignments": [2645],
                   "declarations": [
                     {
                       "constant": false,
@@ -1171,10 +1151,7 @@
                       "id": 2648,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1972:7:5",
                       "typeDescriptions": {
@@ -1351,10 +1328,7 @@
                       "id": 2661,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "2253:7:5",
                       "typeDescriptions": {
@@ -1437,21 +1411,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/LinkTokenReceiver.sol",
     "exportedSymbols": {
-      "LinkTokenReceiver": [
-        2672
-      ]
+      "LinkTokenReceiver": [2672]
     },
     "id": 2673,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2572,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:5"
       },
@@ -1462,9 +1429,7 @@
         "documentation": null,
         "fullyImplemented": false,
         "id": 2672,
-        "linearizedBaseContracts": [
-          2672
-        ],
+        "linearizedBaseContracts": [2672],
         "name": "LinkTokenReceiver",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -1772,10 +1737,7 @@
                   "src": "903:340:5"
                 },
                 {
-                  "assignments": [
-                    2608,
-                    null
-                  ],
+                  "assignments": [2608, null],
                   "declarations": [
                     {
                       "constant": false,
@@ -1962,10 +1924,7 @@
                       "id": 2616,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1323:7:5",
                       "typeDescriptions": {
@@ -2360,10 +2319,7 @@
                       "id": 2629,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1527:7:5",
                       "typeDescriptions": {
@@ -2416,9 +2372,7 @@
               "src": "1819:247:5",
               "statements": [
                 {
-                  "assignments": [
-                    2645
-                  ],
+                  "assignments": [2645],
                   "declarations": [
                     {
                       "constant": false,
@@ -2560,10 +2514,7 @@
                       "id": 2648,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "1972:7:5",
                       "typeDescriptions": {
@@ -2740,10 +2691,7 @@
                       "id": 2661,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3962,
                       "src": "2253:7:5",
                       "typeDescriptions": {

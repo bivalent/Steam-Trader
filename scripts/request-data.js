@@ -44,8 +44,6 @@ module.exports = async callback => {
     classid,
     instanceid,
     appid,
-    context
+    context,
   )
-
-
 }

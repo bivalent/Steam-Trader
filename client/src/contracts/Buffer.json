@@ -11,21 +11,14 @@
   "ast": {
     "absolutePath": "chainlink/v0.5/contracts/vendor/Buffer.sol",
     "exportedSymbols": {
-      "Buffer": [
-        3405
-      ]
+      "Buffer": [3405]
     },
     "id": 3406,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2936,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:11"
       },
@@ -36,9 +29,7 @@
         "documentation": "@dev A library for working with mutable byte buffers in Solidity.\n* Byte buffers are mutable and expandable, and provide a variety of primitives\nfor writing to them. At any time you can fetch a bytes object containing the\ncurrent contents of the buffer. The bytes object should not be stored between\noperations, as it may change due to resizing of the buffer.",
         "fullyImplemented": true,
         "id": 3405,
-        "linearizedBaseContracts": [
-          3405
-        ],
+        "linearizedBaseContracts": [3405],
         "name": "Buffer",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -573,9 +564,7 @@
               "src": "1637:90:11",
               "statements": [
                 {
-                  "assignments": [
-                    2984
-                  ],
+                  "assignments": [2984],
                   "declarations": [
                     {
                       "constant": false,
@@ -860,9 +849,7 @@
               "src": "1794:90:11",
               "statements": [
                 {
-                  "assignments": [
-                    3010
-                  ],
+                  "assignments": [3010],
                   "declarations": [
                     {
                       "constant": false,
@@ -1040,10 +1027,7 @@
                       "id": 3019,
                       "name": "append",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3157,
-                        3177
-                      ],
+                      "overloadedDeclarations": [3157, 3177],
                       "referencedDeclaration": 3177,
                       "src": "1860:6:11",
                       "typeDescriptions": {
@@ -1569,10 +1553,7 @@
                       "id": 3068,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3961,
                       "src": "2766:7:11",
                       "typeDescriptions": {
@@ -1914,9 +1895,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3097
-                  ],
+                  "assignments": [3097],
                   "declarations": [
                     {
                       "constant": false,
@@ -1951,9 +1930,7 @@
                   "src": "2896:9:11"
                 },
                 {
-                  "assignments": [
-                    3100
-                  ],
+                  "assignments": [3100],
                   "declarations": [
                     {
                       "constant": false,
@@ -2319,9 +2296,7 @@
                   "src": "3416:129:11"
                 },
                 {
-                  "assignments": [
-                    3122
-                  ],
+                  "assignments": [3122],
                   "declarations": [
                     {
                       "constant": false,
@@ -2847,10 +2822,7 @@
                       "id": 3147,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3136,
                       "src": "4201:5:11",
                       "typeDescriptions": {
@@ -3147,10 +3119,7 @@
                       "id": 3166,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3136,
                       "src": "4600:5:11",
                       "typeDescriptions": {
@@ -4200,9 +4169,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3256
-                  ],
+                  "assignments": [3256],
                   "declarations": [
                     {
                       "constant": false,
@@ -4907,10 +4874,7 @@
                       "id": 3290,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "7414:5:11",
                       "typeDescriptions": {
@@ -5234,10 +5198,7 @@
                       "id": 3309,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "7811:5:11",
                       "typeDescriptions": {
@@ -5497,10 +5458,7 @@
                       "id": 3330,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "8218:5:11",
                       "typeDescriptions": {
@@ -5908,9 +5866,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3372
-                  ],
+                  "assignments": [3372],
                   "declarations": [
                     {
                       "constant": false,
@@ -6592,21 +6548,14 @@
   "legacyAST": {
     "absolutePath": "chainlink/v0.5/contracts/vendor/Buffer.sol",
     "exportedSymbols": {
-      "Buffer": [
-        3405
-      ]
+      "Buffer": [3405]
     },
     "id": 3406,
     "nodeType": "SourceUnit",
     "nodes": [
       {
         "id": 2936,
-        "literals": [
-          "solidity",
-          "^",
-          "0.5",
-          ".0"
-        ],
+        "literals": ["solidity", "^", "0.5", ".0"],
         "nodeType": "PragmaDirective",
         "src": "0:23:11"
       },
@@ -6617,9 +6566,7 @@
         "documentation": "@dev A library for working with mutable byte buffers in Solidity.\n* Byte buffers are mutable and expandable, and provide a variety of primitives\nfor writing to them. At any time you can fetch a bytes object containing the\ncurrent contents of the buffer. The bytes object should not be stored between\noperations, as it may change due to resizing of the buffer.",
         "fullyImplemented": true,
         "id": 3405,
-        "linearizedBaseContracts": [
-          3405
-        ],
+        "linearizedBaseContracts": [3405],
         "name": "Buffer",
         "nodeType": "ContractDefinition",
         "nodes": [
@@ -7154,9 +7101,7 @@
               "src": "1637:90:11",
               "statements": [
                 {
-                  "assignments": [
-                    2984
-                  ],
+                  "assignments": [2984],
                   "declarations": [
                     {
                       "constant": false,
@@ -7441,9 +7386,7 @@
               "src": "1794:90:11",
               "statements": [
                 {
-                  "assignments": [
-                    3010
-                  ],
+                  "assignments": [3010],
                   "declarations": [
                     {
                       "constant": false,
@@ -7621,10 +7564,7 @@
                       "id": 3019,
                       "name": "append",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3157,
-                        3177
-                      ],
+                      "overloadedDeclarations": [3157, 3177],
                       "referencedDeclaration": 3177,
                       "src": "1860:6:11",
                       "typeDescriptions": {
@@ -8150,10 +8090,7 @@
                       "id": 3068,
                       "name": "require",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3961,
-                        3962
-                      ],
+                      "overloadedDeclarations": [3961, 3962],
                       "referencedDeclaration": 3961,
                       "src": "2766:7:11",
                       "typeDescriptions": {
@@ -8495,9 +8432,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3097
-                  ],
+                  "assignments": [3097],
                   "declarations": [
                     {
                       "constant": false,
@@ -8532,9 +8467,7 @@
                   "src": "2896:9:11"
                 },
                 {
-                  "assignments": [
-                    3100
-                  ],
+                  "assignments": [3100],
                   "declarations": [
                     {
                       "constant": false,
@@ -8900,9 +8833,7 @@
                   "src": "3416:129:11"
                 },
                 {
-                  "assignments": [
-                    3122
-                  ],
+                  "assignments": [3122],
                   "declarations": [
                     {
                       "constant": false,
@@ -9428,10 +9359,7 @@
                       "id": 3147,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3136,
                       "src": "4201:5:11",
                       "typeDescriptions": {
@@ -9728,10 +9656,7 @@
                       "id": 3166,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3136,
                       "src": "4600:5:11",
                       "typeDescriptions": {
@@ -10781,9 +10706,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3256
-                  ],
+                  "assignments": [3256],
                   "declarations": [
                     {
                       "constant": false,
@@ -11488,10 +11411,7 @@
                       "id": 3290,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "7414:5:11",
                       "typeDescriptions": {
@@ -11815,10 +11735,7 @@
                       "id": 3309,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "7811:5:11",
                       "typeDescriptions": {
@@ -12078,10 +11995,7 @@
                       "id": 3330,
                       "name": "write",
                       "nodeType": "Identifier",
-                      "overloadedDeclarations": [
-                        3136,
-                        3279
-                      ],
+                      "overloadedDeclarations": [3136, 3279],
                       "referencedDeclaration": 3279,
                       "src": "8218:5:11",
                       "typeDescriptions": {
@@ -12489,9 +12403,7 @@
                   }
                 },
                 {
-                  "assignments": [
-                    3372
-                  ],
+                  "assignments": [3372],
                   "declarations": [
                     {
                       "constant": false,

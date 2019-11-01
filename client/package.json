@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "browserslist": "^4.7.2",
+    "drizzle": "1.4.0",
+    "protagonist": "^2.0.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-scripts": "3.2.0",
