@@ -1,4 +1,4 @@
-const getTableData = (req, res, db) => {
+const getTrades = (req, res, db) => {
   db.select('*').from('steamtrader.trades')
     .then(items => {
       if(items.length){
@@ -10,8 +10,8 @@ const getTableData = (req, res, db) => {
     .catch(err => res.status(400).json({dbError: 'db error'}))
 }
 
-const postTableData = (req, res, db) => {
-  const { trade_id, steam_id, app_id } = req.body
+const createTrade = (req, res, db) => {
+  const { trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice } = req.body
   const created_timestamp = new Date()
   db('steamtrader.trades').insert({trade_id, steam_id, app_id, created_timestamp})
     .returning('*')
@@ -21,7 +21,7 @@ const postTableData = (req, res, db) => {
     .catch(err => res.status(400).json({dbError: 'db error: ' + err}))
 }
 
-const putTableData = (req, res, db) => {
+const buyTrade = (req, res, db) => {
   const { trade_id, buyer_steam_id } = req.body
   db('steamtrader.trades').where({trade_id}).update({ trade_id, buyer_steam_id })
     .returning('*')
@@ -31,7 +31,7 @@ const putTableData = (req, res, db) => {
     .catch(err => res.status(400).json({dbError: 'db error'}))
 }
 
-const deleteTableData = (req, res, db) => {
+const removeTrade = (req, res, db) => {
   const { trade_id } = req.body
   db('steamtrader.trades').where({trade_id}).del()
     .then(() => {
@@ -41,8 +41,8 @@ const deleteTableData = (req, res, db) => {
 }
 
 module.exports = {
-  getTableData,
-  postTableData,
-  putTableData,
-  deleteTableData
+  getTrades,
+  createTrade,
+  buyTrade,
+  removeTrade
 }

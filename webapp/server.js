@@ -43,10 +43,10 @@ app.use(morgan('combined')) // use 'tiny' or 'combined'
 
 // App Routes - Auth
 app.get('/', (req, res) => res.send('hello world'))
-app.get('/crud', (req, res) => main.getTableData(req, res, db))
-app.post('/crud', (req, res) => main.postTableData(req, res, db))
-app.put('/crud', (req, res) => main.putTableData(req, res, db))
-app.delete('/crud', (req, res) => main.deleteTableData(req, res, db))
+app.get('/crud', (req, res) => main.getTrades(req, res, db))
+app.post('/crud', (req, res) => main.createTrade(req, res, db))
+app.put('/crud', (req, res) => main.buyTrade(req, res, db))
+app.delete('/crud', (req, res) => main.removeTrade(req, res, db))
 
 // App Server Connection
 app.listen(process.env.PORT || 3000, () => {

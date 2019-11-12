@@ -6,42 +6,42 @@ import { CSVLink } from "react-csv"
 
 class App extends Component {
   state = {
-    items: []
+    trades: []
   }
 
-  getItems(){
+  getTrades(){
     fetch('http://localhost:3000/crud')
       .then(response => response.json())
-      .then(items => this.setState({items}))
+      .then(trades => this.setState({trades}))
       .catch(err => console.log(err))
   }
 
-  addItemToState = (item) => {
+  addTradeToState = (trade) => {
     this.setState(prevState => ({
-      items: [...prevState.items, item]
+      trades: [...prevState.trades, trade]
     }))
   }
 
-  updateState = (item) => {
-    const itemIndex = this.state.items.findIndex(data => data.id === item.id)
+  updateState = (trade) => {
+    const tradeIndex = this.state.trades.findIndex(data => data.trade_id === trade.trade_id)
     const newArray = [
-    // destructure all items from beginning to the indexed item
-      ...this.state.items.slice(0, itemIndex),
-    // add the updated item to the array
-      item,
-    // add the rest of the items to the array from the index after the replaced item
-      ...this.state.items.slice(itemIndex + 1)
+    // destructure all trades from beginning to the indexed trade
+      ...this.state.trades.slice(0, tradeIndex),
+    // add the updated trade to the array
+      trade,
+    // add the rest of the trades to the array from the index after the replaced trade
+      ...this.state.trades.slice(tradeIndex + 1)
     ]
-    this.setState({ items: newArray })
+    this.setState({ trades: newArray })
   }
 
-  deleteItemFromState = (id) => {
-    const updatedItems = this.state.items.filter(item => item.id !== id)
-    this.setState({ items: updatedItems })
+  deleteTradeFromState = (trade_id) => {
+    const updatedTrades = this.state.trades.filter(trade => trade.trade_id !== trade_id)
+    this.setState({ trades: updatedTrades })
   }
 
   componentDidMount(){
-    this.getItems()
+    this.getTrades()
   }
 
   render() {
@@ -54,7 +54,7 @@ class App extends Component {
         </Row>
         <Row>
           <Col>
-            <DataTable items={this.state.items} updateState={this.updateState} deleteItemFromState={this.deleteItemFromState} />
+            <DataTable trades={this.state.trades} updateState={this.updateState} deleteTradeFromState={this.deleteTradeFromState} />
           </Col>
         </Row>
         <Row>
@@ -64,10 +64,10 @@ class App extends Component {
               color="primary"
               style={{float: "left", marginRight: "10px"}}
               className="btn btn-primary"
-              data={this.state.items}>
+              data={this.state.trades}>
               Download CSV
             </CSVLink>
-            <ModalForm buttonLabel="Add Item" addItemToState={this.addItemToState}/>
+            <ModalForm buttonLabel="Add Trade" addTradeToState={this.addTradeToState}/>
           </Col>
         </Row>
       </Container>

@@ -4,8 +4,8 @@ import ModalForm from '../Modals/Modal'
 
 class DataTable extends Component {
 
-  deleteItem = id => {
-    let confirmDelete = window.confirm('Delete item forever?')
+  deleteTrade = id => {
+    let confirmDelete = window.confirm('Delete trade forever?')
     if(confirmDelete){
       fetch('http://localhost:3000/crud', {
       method: 'delete',
@@ -17,8 +17,8 @@ class DataTable extends Component {
       })
     })
       .then(response => response.json())
-      .then(item => {
-        this.props.deleteItemFromState(id)
+      .then(trade => {
+        this.props.deleteTradeFromState(id)
       })
       .catch(err => console.log(err))
     }
@@ -26,23 +26,23 @@ class DataTable extends Component {
   }
 
   render() {
-    const items = this.props.items.map(item => {
+    const trades = this.props.trades.map(trade => {
       return (
-        <tr key={item.trade_id}>
-          <th scope="row">{item.trade_id}</th>
-          <td>{item.steam_id}</td>
-          <td>{item.appid}</td>
-          <td>{item.assetid}</td>
-          <td>{item.classid}</td>
-          <td>{item.instanceid}</td>
+        <tr key={trade.trade_id}>
+          <th scope="row">{trade.trade_id}</th>
+          <td>{trade.steam_id}</td>
+          <td>{trade.appid}</td>
+          <td>{trade.assetid}</td>
+          <td>{trade.classid}</td>
+          <td>{trade.instanceid}</td>
 
-          <td>{item.inventoryContext}</td>
-          <td>{item.askingPrice}</td>
+          <td>{trade.inventoryContext}</td>
+          <td>{trade.askingPrice}</td>
           <td>
             <div style={{width:"110px"}}>
-              <ModalForm buttonLabel="Edit" item={item} updateState={this.props.updateState}/>
+              <ModalForm buttonLabel="Buy" trade={trade} updateState={this.props.updateState}/>
               {' '}
-              <Button color="danger" onClick={() => this.deleteItem(item.id)}>Del</Button>
+              <Button color="danger" onClick={() => this.deleteTrade(trade.id)}>Del</Button>
             </div>
           </td>
         </tr>
@@ -65,7 +65,7 @@ class DataTable extends Component {
           </tr>
         </thead>
         <tbody>
-          {items}
+          {trades}
         </tbody>
       </Table>
     )

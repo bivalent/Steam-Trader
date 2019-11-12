@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Button, Modal, ModalHeader, ModalBody } from 'reactstrap'
-import AddEditForm from '../Forms/AddEditForm'
+import CreateTradeForm from '../Forms/CreateTradeForm'
+import BuyTradeForm from '../Forms/BuyTradeForm'
 
 class ModalForm extends Component {
   constructor(props) {
@@ -23,21 +24,32 @@ class ModalForm extends Component {
 
       let button = ''
       let title = ''
-
-      if(label === 'Edit'){
+      let createTradeFormModal = <CreateTradeForm
+        addTradeToState={this.props.addTradeToState}
+        updateState={this.props.updateState}
+        toggle={this.toggle}
+        trade={this.props.trade} />
+      let buyTradeFormModal = <BuyTradeForm
+        addTradeToState={this.props.addTradeToState}
+        updateState={this.props.updateState}
+        toggle={this.toggle}
+        trade={this.props.trade} />
+      let form = createTradeFormModal
+      if(label === 'Buy'){
         button = <Button
                   color="warning"
                   onClick={this.toggle}
                   style={{float: "left", marginRight:"10px"}}>{label}
                 </Button>
-        title = 'Edit Item'
+        title = 'Buy Trade'
+        form = buyTradeFormModal
       } else {
         button = <Button
                   color="success"
                   onClick={this.toggle}
                   style={{float: "left", marginRight:"10px"}}>{label}
                 </Button>
-        title = 'Add New Item'
+        title = 'Add New Trade'
       }
 
 
@@ -47,11 +59,7 @@ class ModalForm extends Component {
         <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
           <ModalHeader toggle={this.toggle} close={closeBtn}>{title}</ModalHeader>
           <ModalBody>
-            <AddEditForm
-              addItemToState={this.props.addItemToState}
-              updateState={this.props.updateState}
-              toggle={this.toggle}
-              item={this.props.item} />
+            {form}
           </ModalBody>
         </Modal>
       </div>
