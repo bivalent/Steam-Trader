@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Container, Row, Col } from 'reactstrap'
-import ModalForm from './Components/Modals/Modal'
+import CreateModalForm from './Components/Modals/CreateModal'
 import DataTable from './Components/Tables/DataTable'
 import { CSVLink } from "react-csv"
 
@@ -67,7 +67,7 @@ class App extends Component {
               data={this.state.trades}>
               Download CSV
             </CSVLink>
-            <ModalForm buttonLabel="Add Trade" addTradeToState={this.addTradeToState}/>
+            <CreateModalForm buttonLabel="Add Trade" addTradeToState={this.addTradeToState}/>
           </Col>
         </Row>
       </Container>

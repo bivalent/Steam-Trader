@@ -24,34 +24,12 @@ class ModalForm extends Component {
 
       let button = ''
       let title = ''
-      let createTradeFormModal = <CreateTradeForm
-        addTradeToState={this.props.addTradeToState}
-        updateState={this.props.updateState}
-        toggle={this.toggle}
-        trade={this.props.trade} />
-      let buyTradeFormModal = <BuyTradeForm
-        addTradeToState={this.props.addTradeToState}
-        updateState={this.props.updateState}
-        toggle={this.toggle}
-        trade={this.props.trade} />
-      let form = createTradeFormModal
-      if(label === 'Buy'){
-        button = <Button
-                  color="warning"
-                  onClick={this.toggle}
-                  style={{float: "left", marginRight:"10px"}}>{label}
-                </Button>
-        title = 'Buy Trade'
-        form = buyTradeFormModal
-      } else {
-        button = <Button
-                  color="success"
-                  onClick={this.toggle}
-                  style={{float: "left", marginRight:"10px"}}>{label}
-                </Button>
-        title = 'Add New Trade'
-      }
-
+      button = <Button
+                color="success"
+                onClick={this.toggle}
+                style={{float: "left", marginRight:"10px"}}>{label}
+              </Button>
+      title = 'Add New Trade'
 
       return (
       <div>
@@ -59,7 +37,11 @@ class ModalForm extends Component {
         <Modal isOpen={this.state.modal} toggle={this.toggle} className={this.props.className}>
           <ModalHeader toggle={this.toggle} close={closeBtn}>{title}</ModalHeader>
           <ModalBody>
-            {form}
+            <CreateTradeForm
+              addTradeToState={this.props.addTradeToState}
+              updateState={this.props.updateState}
+              toggle={this.toggle}
+              trade={this.props.trade} />
           </ModalBody>
         </Modal>
       </div>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Table, Button } from 'reactstrap';
-import ModalForm from '../Modals/Modal'
+import CreateModalForm from '../Modals/CreateModal'
+import BuyModalForm from '../Modals/BuyModal'
 
 class DataTable extends Component {
 
@@ -40,7 +41,7 @@ class DataTable extends Component {
           <td>{trade.askingPrice}</td>
           <td>
             <div style={{width:"110px"}}>
-              <ModalForm buttonLabel="Buy" trade={trade} updateState={this.props.updateState}/>
+              <BuyModalForm buttonLabel="Buy" trade={trade} updateState={this.props.updateState}/>
               {' '}
               <Button color="danger" onClick={() => this.deleteTrade(trade.id)}>Del</Button>
             </div>
