@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import BuyTradeForm from './BuyTradeForm'
 import uuidv4 from 'uuid/v4'
 
-class AddEditForm extends React.Component {
+class CreateTradeForm extends React.Component {
   state = {
     trade_id: uuidv4().replace(/-/g, ''),
     steam_id: '',
@@ -38,9 +39,9 @@ class AddEditForm extends React.Component {
       })
     })
       .then(response => response.json())
-      .then(item => {
-        if(Array.isArray(item)) {
-          this.props.addItemToState(item[0])
+      .then(trade => {
+        if(Array.isArray(trade)) {
+          this.props.addTradeToState(trade[0])
           this.props.toggle()
         } else {
           console.log('failure')
@@ -49,7 +50,7 @@ class AddEditForm extends React.Component {
       .catch(err => console.log(err))
   }
 
-  submitFormEdit = e => {
+  submitFormBuy = e => {
     e.preventDefault()
     fetch('http://localhost:3000/crud', {
       method: 'put',
@@ -58,20 +59,14 @@ class AddEditForm extends React.Component {
       },
       body: JSON.stringify({
         trade_id: this.state.trade_id,
-        steam_id: this.state.steam_id,
-        app_id: this.state.app_id,
-        assetid: this.state.assetid,
-        classid: this.state.classid,
-        instanceid: this.state.instanceid,
-        inventoryContext: this.state.inventoryContext,
-        askingPrice: this.state.askingPrice
+        buyer_steam_id: this.state.buyer_steam_id
       })
     })
       .then(response => response.json())
-      .then(item => {
-        if(Array.isArray(item)) {
-          // console.log(item[0])
-          this.props.updateState(item[0])
+      .then(trade => {
+        if(Array.isArray(trade)) {
+          // console.log(trade[0])
+          this.props.updateState(trade[0])
           this.props.toggle()
         } else {
           console.log('failure')
@@ -81,16 +76,16 @@ class AddEditForm extends React.Component {
   }
 
   componentDidMount(){
-    // if item exists, populate the state with proper data
-    if(this.props.item){
-      const { trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice } = this.props.item
-      this.setState({ trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice })
+    // if trade exists, populate the state with proper data
+    if(this.props.trade){
+      const { trade_id, buyer_steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice } = this.props.trade
+      this.setState({ trade_id, buyer_steam_id })
     }
   }
 
-  render() {
+  renderCreateForm() {
     return (
-      <Form onSubmit={this.props.item ? this.submitFormEdit : this.submitFormAdd}>
+      <Form onSubmit={this.submitFormAdd}>
         <FormGroup>
           <Label for="trade_id">Trade Id</Label>
           <Input type="text" name="trade_id" id="trade_id" onChange={this.onChange} value={this.state.trade_id === null ? uuidv4().replace(/-/g, '') : this.state.trade_id} />
@@ -127,6 +122,26 @@ class AddEditForm extends React.Component {
       </Form>
     );
   }
+
+  renderBuyForm() {
+    return (
+      <Form onSubmit={this.submitFormBuy}>
+        <FormGroup>
+          <Label for="trade_id">Trade Id</Label>
+          <Input type="text" name="trade_id" id="trade_id" onChange={this.onChange} value={this.state.trade_id} />
+        </FormGroup>
+        <FormGroup>
+          <Label for="buyer_steam_id">Steam Id</Label>
+          <Input type="text" name="buyer_steam_id" id="buyer_steam_id" onChange={this.onChange} value={this.state.buyer_steam_id}  />
+        </FormGroup>
+        <Button>Submit</Button>
+      </Form>
+    );
+  }
+
+  render() {
+    return this.props.trade ? this.renderBuyForm : this.submitFormAdd
+  }
 }
 
-export default AddEditForm
+export default CreateTradeForm
