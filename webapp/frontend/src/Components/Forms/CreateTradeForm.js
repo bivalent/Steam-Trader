@@ -6,7 +6,7 @@ class AddEditForm extends React.Component {
   state = {
     trade_id: uuidv4().replace(/-/g, ''),
     steam_id: '',
-    appid: '',
+    app_id: '',
     assetid: 0,
     classid: 0,
     instanceid: 0,
@@ -27,14 +27,14 @@ class AddEditForm extends React.Component {
       },
 
       body: JSON.stringify({
-        trade_id: uuidv4().replace(/-/g, ''),
+        trade_id: this.state.trade_id,
         steam_id: this.state.steam_id,
-        appid: this.state.appid,
-        assetid: this.state.assetid,
-        classid: this.state.classid,
-        instanceid: this.state.instanceid,
-        inventoryContext: this.state.inventoryContext,
-        askingPrice: this.state.askingPrice
+        app_id: this.state.app_id
+        //assetid: this.state.assetid,
+        //classid: this.state.classid,
+        //instanceid: this.state.instanceid,
+        //inventoryContext: this.state.inventoryContext,
+        //askingPrice: this.state.askingPrice
       })
     })
       .then(response => response.json())
@@ -59,7 +59,7 @@ class AddEditForm extends React.Component {
       body: JSON.stringify({
         trade_id: this.state.trade_id,
         steam_id: this.state.steam_id,
-        appid: this.state.appid,
+        app_id: this.state.app_id,
         assetid: this.state.assetid,
         classid: this.state.classid,
         instanceid: this.state.instanceid,
@@ -83,8 +83,8 @@ class AddEditForm extends React.Component {
   componentDidMount(){
     // if item exists, populate the state with proper data
     if(this.props.item){
-      const { trade_id, steam_id, appid, assetid, classid, instanceid, inventoryContext, askingPrice } = this.props.item
-      this.setState({ trade_id, steam_id, appid, assetid, classid, instanceid, inventoryContext, askingPrice })
+      const { trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice } = this.props.item
+      this.setState({ trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice })
     }
   }
 
@@ -100,8 +100,8 @@ class AddEditForm extends React.Component {
           <Input type="text" name="steam_id" id="steam_id" onChange={this.onChange} value={this.state.steam_id}  />
         </FormGroup>
         <FormGroup>
-          <Label for="appId">AppId</Label>
-          <Input type="number" name="appId" id="appId" onChange={this.onChange} value={this.state.appId}  />
+          <Label for="app_id">AppId</Label>
+          <Input type="number" name="app_id" id="app_id" onChange={this.onChange} value={this.state.app_id}  />
         </FormGroup>
         <FormGroup>
           <Label for="assetid">AssetId</Label>
