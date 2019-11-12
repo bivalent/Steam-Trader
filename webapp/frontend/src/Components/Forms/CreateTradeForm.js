@@ -123,24 +123,8 @@ class CreateTradeForm extends React.Component {
     );
   }
 
-  renderBuyForm() {
-    return (
-      <Form onSubmit={this.submitFormBuy}>
-        <FormGroup>
-          <Label for="trade_id">Trade Id</Label>
-          <Input type="text" name="trade_id" id="trade_id" onChange={this.onChange} value={this.state.trade_id} />
-        </FormGroup>
-        <FormGroup>
-          <Label for="buyer_steam_id">Steam Id</Label>
-          <Input type="text" name="buyer_steam_id" id="buyer_steam_id" onChange={this.onChange} value={this.state.buyer_steam_id}  />
-        </FormGroup>
-        <Button>Submit</Button>
-      </Form>
-    );
-  }
-
   render() {
-    return this.props.trade ? this.renderBuyForm : this.submitFormAdd
+    return this.props.trade ? BuyTradeForm.renderBuyForm : this.submitFormAdd
   }
 }
 

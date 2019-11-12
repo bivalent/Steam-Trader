@@ -40,7 +40,7 @@ class BuyTradeForm extends React.Component {
   componentDidMount(){
     // if trade exists, populate the state with proper data
     if(this.props.trade){
-      const { trade_id, buyer_steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice } = this.props.trade
+      const { trade_id, steam_id, app_id, assetid, classid, instanceid, inventoryContext, askingPrice, buyer_steam_id } = this.props.trade
       this.setState({ trade_id, buyer_steam_id })
     }
   }
@@ -53,7 +53,7 @@ class BuyTradeForm extends React.Component {
           <Input type="text" name="trade_id" id="trade_id" onChange={this.onChange} value={this.state.trade_id} />
         </FormGroup>
         <FormGroup>
-          <Label for="buyer_steam_id">Steam Id</Label>
+          <Label for="buyer_steam_id">Buyer Steam Id</Label>
           <Input type="text" name="buyer_steam_id" id="buyer_steam_id" onChange={this.onChange} value={this.state.buyer_steam_id}  />
         </FormGroup>
         <Button>Submit</Button>
